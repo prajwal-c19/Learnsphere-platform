@@ -7,6 +7,7 @@ from app.models.enrollment import Enrollment
 from app.models.assessment import Assessment
 from app.models.user import User
 
+from app.models.course import Course
 
 def submit_quiz(
     db: Session,
@@ -129,3 +130,66 @@ def get_latest_result(
         "percentage": result.percentage,
         "passed": result.passed
     }
+
+
+def get_result_history(
+    db: Session,
+    current_user: User
+):
+
+    results = (
+        db.query(Result)
+        .join(
+            Assessment,
+            Result.assessment_id == Assessment.id
+        )
+        .join(
+            Course,
+            Assessment.course_id == Course.id
+        )
+        .filter(
+            Result.user_id == current_user.id
+        )
+        .order_by(
+            Result.submitted_at.desc()
+        )
+        .all()
+    )
+
+    history = []
+
+    for result in results:
+
+        assessment = (
+            db.query(Assessment)
+            .filter(
+                Assessment.id == result.assessment_id
+            )
+            .first()
+        )
+
+        course = (
+            db.query(Course)
+            .filter(
+                Course.id == assessment.course_id
+            )
+            .first()
+        )
+
+        history.append({
+
+            "assessment_id": result.assessment_id,
+
+            "course_name": course.title,
+
+            "score": result.score,
+
+            "percentage": result.percentage,
+
+            "passed": result.passed,
+
+            "submitted_at": result.submitted_at
+
+        })
+
+    return history

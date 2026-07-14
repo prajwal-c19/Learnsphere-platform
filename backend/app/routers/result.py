@@ -63,3 +63,14 @@ def get_latest_result(
         current_user=current_user,
         assessment_id=assessment_id
     )
+
+@router.get("/history")
+def get_result_history(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    return result_service.get_result_history(
+        db=db,
+        current_user=current_user
+    )

@@ -79,6 +79,16 @@ def get_assessment_by_course(
 
     return assessment
 
+@router.get("/my")
+def get_my_assessments(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db)
+):
+
+    return assessment_service.get_my_assessments(
+        db=db,
+        current_user=current_user
+    )
 
 @router.get(
     "/{assessment_id}",

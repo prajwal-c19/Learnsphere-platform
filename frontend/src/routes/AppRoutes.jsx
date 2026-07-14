@@ -13,12 +13,15 @@ import Result from "../pages/learner/Result";
 import AdminDashboard from "../pages/admin/Dashboard";
 import Users from "../pages/admin/Users";
 import AdminCourses from "../pages/admin/Courses";
-import Assessments from "../pages/admin/Assessments";
+import AdminAssessments from "../pages/admin/Assessments";
 import QuestionManagement from "../pages/admin/QuestionManagement";
 import LessonManagement from "../pages/admin/LessonManagement";
 
 import ProtectedRoute from "../components/auth/ProtectedRoute";
 import AdminProtectedRoute from "../components/auth/AdminProtectedRoute";
+
+import Assessments from "../pages/learner/Assessments";
+import Results from "../pages/learner/Results";
 
 function AppRoutes() {
 
@@ -79,12 +82,28 @@ function AppRoutes() {
                         </ProtectedRoute>
                     }
                 />
+               <Route
+                    path="/assessments"
+                    element={
+                        <ProtectedRoute>
+                            <Assessments />
+                        </ProtectedRoute>
+                    }
+                />
 
                 <Route
                     path="/assessment/:courseId"
                     element={
                         <ProtectedRoute>
                             <Assessment />
+                        </ProtectedRoute>
+                    }
+                />
+                <Route
+                    path="/results"
+                    element={
+                        <ProtectedRoute>
+                            <Results />
                         </ProtectedRoute>
                     }
                 />
@@ -142,7 +161,7 @@ function AppRoutes() {
                     path="/admin/assessments"
                     element={
                         <AdminProtectedRoute>
-                            <Assessments />
+                            <AdminAssessments />
                         </AdminProtectedRoute>
                     }
                 />

@@ -14,6 +14,16 @@ export const getAssessmentByCourse = async (courseId) => {
 
 };
 
+export const getMyAssessments = async () => {
+
+    const response = await API.get(
+        "/assessments/my"
+    );
+
+    return response.data;
+
+};
+
 export const getQuestions = async (assessmentId) => {
 
     const response = await API.get(

@@ -3,6 +3,12 @@ from sqlalchemy.orm import Session
 from app.models.assessment import Assessment
 from app.schemas.assessment import AssessmentCreate
 
+from app.models.course import Course
+from app.models.enrollment import Enrollment
+from app.models.result import Result
+from app.models.user import User
+from sqlalchemy import func
+
 
 def create_assessment(
     db: Session,
@@ -112,3 +118,81 @@ def delete_assessment(
         db.commit()
 
     return assessment
+
+def get_my_assessments(
+    db: Session,
+    current_user: User
+):
+
+    enrollments = (
+        db.query(Enrollment)
+        .filter(
+            Enrollment.user_id == current_user.id
+        )
+        .all()
+    )
+
+    data = []
+
+    for enrollment in enrollments:
+
+        course = (
+            db.query(Course)
+            .filter(
+                Course.id == enrollment.course_id
+            )
+            .first()
+        )
+
+        assessment = (
+            db.query(Assessment)
+            .filter(
+                Assessment.course_id == course.id
+            )
+            .first()
+        )
+
+        if not assessment:
+            continue
+
+        attempts = (
+            db.query(Result)
+            .filter(
+                Result.user_id == current_user.id,
+                Result.assessment_id == assessment.id
+            )
+            .count()
+        )
+
+        best_result = (
+            db.query(func.max(Result.percentage))
+            .filter(
+                Result.user_id == current_user.id,
+                Result.assessment_id == assessment.id
+            )
+            .scalar()
+        )
+
+        data.append({
+
+            "assessment_id": assessment.id,
+
+            "course_id": course.id,
+
+            "course_name": course.title,
+
+            "assessment_title": assessment.title,
+
+            "progress": enrollment.progress,
+
+            "status": enrollment.status,
+
+            "available": enrollment.progress >= 80,
+
+            "attempts": attempts,
+
+            "best_score": best_result or 0
+
+        })
+
+    return data

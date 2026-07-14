@@ -35,12 +35,12 @@ function Sidebar() {
     },
     {
       name: "Assessments",
-      path: "/assessment",
+      path: "/assessments",
       icon: FileText,
     },
     {
       name: "Results",
-      path: "/result",
+      path: "/results",
       icon: Trophy,
     },
   ];
