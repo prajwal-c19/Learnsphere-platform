@@ -1,4 +1,5 @@
-````craete a .env file in backend
+````
+craete a .env file in backend
 it shd look like this 
 
 DATABASE_URL=postgresql://postgres:your password@localhost:5432/databasename
