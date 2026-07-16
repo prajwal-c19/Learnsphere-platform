@@ -18,4 +18,13 @@ Frontend
 
 npm install
 npm run dev
+
+
+git checkout dev
+git pull origin dev
+git checkout -b feature-ur_name
+
+git add .
+git commit -m "commit msg"
+git push -u origin feature-ur_name
 ```
