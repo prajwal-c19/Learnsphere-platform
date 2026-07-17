@@ -35,6 +35,20 @@ export const createLesson = async (lesson) => {
 
 };
 
+export const updateLesson = async (
+    lessonId,
+    lesson
+) => {
+
+    const response = await API.put(
+        `/lessons/${lessonId}`,
+        lesson
+    );
+
+    return response.data;
+
+};
+
 export const deleteLesson = async (id) => {
 
     const response = await API.delete(

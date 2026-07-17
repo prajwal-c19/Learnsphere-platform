@@ -1,10 +1,12 @@
-import { Trash2, Video, FileText } from "lucide-react";
+import { Trash2, Video, FileText, Pencil } from "lucide-react";
 
 function LessonTable({
 
     lessons,
 
-    onDelete
+    onDelete,
+
+    onEdit
 
 }) {
 
@@ -129,15 +131,30 @@ function LessonTable({
                                     </td>
 
                                     <td className="px-6 py-5 text-center">
+                                        <div className="flex justify-center gap-3">
 
-                                        <button
-                                            onClick={() => onDelete(lesson.id)}
-                                            className="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200"
-                                        >
+                                            <button
 
-                                            <Trash2 size={18} />
+                                                onClick={() => onEdit(lesson)}
 
-                                        </button>
+                                                className="bg-indigo-100 text-indigo-700 p-2 rounded-lg hover:bg-indigo-200"
+
+                                            >
+
+                                                <Pencil size={18} />
+
+                                            </button>
+
+                                            <button
+                                                onClick={() => onDelete(lesson.id)}
+                                                className="bg-red-100 text-red-700 p-2 rounded-lg hover:bg-red-200"
+                                            >
+
+                                                <Trash2 size={18} />
+
+                                            </button>
+
+                                        </div>
 
                                     </td>
 

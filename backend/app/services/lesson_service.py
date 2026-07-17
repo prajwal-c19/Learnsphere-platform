@@ -243,6 +243,76 @@ def create_lesson(
 
     return new_lesson
 
+# ==========================================================
+# Update Lesson
+# ==========================================================
+
+def update_lesson(
+    db: Session,
+    lesson_id: int,
+    lesson_data: LessonCreate
+):
+    """
+    Update an existing lesson.
+    """
+
+    lesson = (
+
+        db.query(Lesson)
+
+        .filter(
+            Lesson.id == lesson_id
+        )
+
+        .first()
+
+    )
+
+    if not lesson:
+
+        return None
+
+    # ------------------------------------------
+    # If an uploaded video is being replaced,
+    # remove the old uploaded file.
+    # ------------------------------------------
+
+    if (
+
+        lesson.video_type == "upload"
+
+        and lesson.video_url
+
+        and lesson.video_url != lesson_data.video_url
+
+    ):
+
+        delete_uploaded_video(
+            lesson.video_url
+        )
+
+    # ------------------------------------------
+    # Update lesson fields
+    # ------------------------------------------
+
+    lesson.title = lesson_data.title
+
+    lesson.description = lesson_data.description
+
+    lesson.video_type = lesson_data.video_type
+
+    lesson.video_url = lesson_data.video_url
+
+    lesson.notes_url = lesson_data.notes_url
+
+    lesson.order = lesson_data.order
+
+    db.commit()
+
+    db.refresh(lesson)
+
+    return lesson
+
 
 # ==========================================================
 # Get Lessons By Course

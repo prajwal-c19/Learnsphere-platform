@@ -63,7 +63,35 @@ def create_lesson(
         lesson,
     )
 
+# ==========================================================
+# Update Lesson
+# ==========================================================
 
+@router.put(
+    "/{lesson_id}",
+    response_model=LessonResponse,
+)
+def update_lesson(
+    lesson_id: int,
+    lesson: LessonCreate,
+    admin: User = Depends(get_current_admin),
+    db: Session = Depends(get_db),
+):
+
+    updated = lesson_service.update_lesson(
+        db,
+        lesson_id,
+        lesson,
+    )
+
+    if not updated:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Lesson not found.",
+        )
+
+    return updated
 # ==========================================================
 # Get Lessons
 # ==========================================================

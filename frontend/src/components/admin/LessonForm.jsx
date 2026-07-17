@@ -40,6 +40,8 @@ function LessonForm({
 
     courseId,
 
+    lesson,
+
     onClose,
 
     onSubmit,
@@ -60,27 +62,49 @@ function LessonForm({
 
     useEffect(() => {
 
-        if (open) {
+    if (!open) return;
 
-            setFormData({
+    if (lesson) {
 
-                ...initialState,
+        setFormData({
 
-                order: nextOrder || 1
+            title: lesson.title,
 
-            });
+            description: lesson.description || "",
 
-            setVideoFile(null);
+            video_type: lesson.video_type,
 
-            setUploadProgress(0);
+            video_url: lesson.video_url || "",
 
-            setUploading(false);
+            notes_url: lesson.notes_url || "",
 
-            setError("");
+            order: lesson.order
 
-        }
+        });
 
-    }, [open, nextOrder]);
+    }
+
+    else {
+
+        setFormData({
+
+            ...initialState,
+
+            order: nextOrder || 1
+
+        });
+
+    }
+
+    setVideoFile(null);
+
+    setUploadProgress(0);
+
+    setUploading(false);
+
+    setError("");
+
+}, [open, lesson, nextOrder]);
 
 
     const handleChange = (e) => {
@@ -170,101 +194,100 @@ function LessonForm({
         setVideoFile(file);
 
     };
-        const handleSubmit = async (e) => {
+const handleSubmit = async (e) => {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        try {
+    try {
 
-            setError("");
+        setError("");
 
-            let lessonData = {
+        let lessonData = {
 
-                course_id: Number(courseId),
+            course_id: Number(courseId),
 
-                ...formData,
+            ...formData,
 
-                order: Number(formData.order),
+            order: Number(formData.order),
 
-            };
+        };
 
-            // ==========================================
-            // Upload Local Video
-            // ==========================================
+        // ==========================================
+        // Upload Local Video (only if a new file is selected)
+        // ==========================================
 
-            if (formData.video_type === "upload") {
+        if (
 
-                if (!videoFile) {
+            formData.video_type === "upload" &&
 
-                    setError(
-                        "Please select a video."
-                    );
+            videoFile
 
-                    return;
+        ) {
 
-                }
+            setUploading(true);
 
-                setUploading(true);
+            const uploadResponse =
+                await uploadLessonVideo(
 
-                const uploadResponse =
-                    await uploadLessonVideo(
+                    videoFile,
 
-                        videoFile,
+                    (progressEvent) => {
 
-                        (progressEvent) => {
+                        const progress = Math.round(
 
-                            const progress = Math.round(
+                            (
+                                progressEvent.loaded /
 
-                                (
-                                    progressEvent.loaded /
-                                    progressEvent.total
-                                ) * 100
+                                progressEvent.total
+                            ) * 100
 
-                            );
+                        );
 
-                            setUploadProgress(progress);
+                        setUploadProgress(progress);
 
-                        }
+                    }
 
-                    );
+                );
 
-                lessonData.video_url =
-                    uploadResponse.video_url;
+            lessonData.video_url =
+                uploadResponse.video_url;
 
-                lessonData.video_type =
-                    uploadResponse.video_type;
-
-                setUploading(false);
-
-            }
-
-            // ==========================================
-            // Create Lesson
-            // ==========================================
-
-            await onSubmit(
-                lessonData
-            );
+            lessonData.video_type =
+                uploadResponse.video_type;
 
         }
 
-        catch (error) {
+        // ==========================================
+        // Save Lesson (Create or Update)
+        // ==========================================
 
-            console.error(error);
+        await onSubmit(
+            lessonData
+        );
 
-            setUploading(false);
+    }
 
-            setError(
+    catch (error) {
 
-                error?.response?.data?.detail ||
+        console.error(error);
 
-                "Failed to create lesson."
+        setError(
 
-            );
+            error?.response?.data?.detail ||
 
-        }
+            "Failed to save lesson."
 
-    };
+        );
+
+    }
+
+    finally {
+
+        setUploading(false);
+
+    }
+
+};
         if (!open) {
 
         return null;
@@ -278,9 +301,9 @@ function LessonForm({
             <div className="bg-white rounded-2xl shadow-xl w-full max-w-2xl p-8">
 
                 <h2 className="text-3xl font-bold mb-8">
-
-                    Add Lesson
-
+                    {lesson 
+                    ? "Edit Lesson" 
+                    : "Add Lesson"}
                 </h2>
 
                 <form
