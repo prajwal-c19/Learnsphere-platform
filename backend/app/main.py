@@ -1,7 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-
-from app.database import Base, engine
+from fastapi.staticfiles import StaticFiles
 
 from app.routers import (
     auth,
@@ -14,26 +13,17 @@ from app.routers import (
     admin,
     profile,
     lesson,
-    certificate
+    certificate,
 )
-
-from app.models import (
-    User,
-    Course,
-    Enrollment,
-    Assessment,
-    Question,
-    Result,
-    Lesson,
-    LessonProgress
-)
-
-Base.metadata.create_all(bind=engine)
 
 app = FastAPI(
     title="Learning Experience Platform API",
-    version="2.0.0"
+    version="2.0.0",
 )
+
+# ==========================================================
+# CORS
+# ==========================================================
 
 app.add_middleware(
     CORSMiddleware,
@@ -44,6 +34,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# ==========================================================
+# Static Files
+# ==========================================================
+
+app.mount(
+    "/uploads",
+    StaticFiles(directory="uploads"),
+    name="uploads",
+)
+
+# ==========================================================
+# Routers
+# ==========================================================
 
 app.include_router(auth.router)
 app.include_router(course.router)
@@ -57,9 +61,13 @@ app.include_router(profile.router)
 app.include_router(lesson.router)
 app.include_router(certificate.router)
 
+# ==========================================================
+# Root
+# ==========================================================
 
 @app.get("/")
 def root():
+
     return {
         "message": "Welcome to Learning Experience Platform"
     }

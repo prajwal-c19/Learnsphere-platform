@@ -18,4 +18,7 @@ Frontend
 
 npm install
 npm run dev
+
+
+pip install alembic
 ```
