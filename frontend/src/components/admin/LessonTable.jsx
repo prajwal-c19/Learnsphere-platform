@@ -21,15 +21,15 @@ function getYoutubeEmbedUrl(url) {
 }
 
 function LessonTable({ lessons, onDelete }) {
-  // Local search/sort/pagination refine whatever `lessons` array this
-  // component receives — if a parent page also filters before passing
-  // lessons down, this stacks on top of that rather than replacing it.
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("order");
   const [sortDir, setSortDir] = useState("asc");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
   const [previewLesson, setPreviewLesson] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const safeLessons = Array.isArray(lessons) ? lessons : [];
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -41,13 +41,15 @@ function LessonTable({ lessons, onDelete }) {
   };
 
   const processedLessons = useMemo(() => {
-    let result = lessons.filter((lesson) =>
-      lesson.title.toLowerCase().includes(search.toLowerCase())
+    let result = safeLessons.filter((lesson) =>
+      (lesson.title || "").toLowerCase().includes(search.toLowerCase())
     );
 
     result = [...result].sort((a, b) => {
       if (sortBy === "order") {
-        return sortDir === "asc" ? a.order - b.order : b.order - a.order;
+        return sortDir === "asc"
+          ? (a.order ?? 0) - (b.order ?? 0)
+          : (b.order ?? 0) - (a.order ?? 0);
       }
       const aVal = (a[sortBy] || "").toString().toLowerCase();
       const bVal = (b[sortBy] || "").toString().toLowerCase();
@@ -56,13 +58,22 @@ function LessonTable({ lessons, onDelete }) {
     });
 
     return result;
-  }, [lessons, search, sortBy, sortDir]);
+  }, [safeLessons, search, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(processedLessons.length / PAGE_SIZE));
   const paginatedLessons = processedLessons.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
+
+  const handleDeleteClick = async (id) => {
+    try {
+      setDeletingId(id);
+      await onDelete(id);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const SortHeader = ({ field, label }) => (
     <button
@@ -143,7 +154,6 @@ function LessonTable({ lessons, onDelete }) {
                     </p>
                   </td>
 
-                  {/* Duration — only if the API ever provides it */}
                   <td className="px-6 py-4 text-slate-300 text-sm">
                     {lesson.duration || (
                       <span className="text-slate-600">—</span>
@@ -168,7 +178,6 @@ function LessonTable({ lessons, onDelete }) {
                     </div>
                   </td>
 
-                  {/* Status badge — only if the API ever provides it */}
                   <td className="px-6 py-4">
                     {typeof lesson.published === "boolean" ? (
                       <span
@@ -194,7 +203,8 @@ function LessonTable({ lessons, onDelete }) {
                             openMenuId === lesson.id ? null : lesson.id
                           )
                         }
-                        className="p-2 rounded-lg text-slate-400 hover:text-rose-300 hover:bg-white/[0.06] transition-colors"
+                        disabled={deletingId === lesson.id}
+                        className="p-2 rounded-lg text-slate-400 hover:text-rose-300 hover:bg-white/[0.06] transition-colors disabled:opacity-40"
                       >
                         <MoreVertical size={18} />
                       </button>
@@ -221,8 +231,8 @@ function LessonTable({ lessons, onDelete }) {
                             )}
                             <button
                               onClick={() => {
-                                onDelete(lesson.id);
                                 setOpenMenuId(null);
+                                handleDeleteClick(lesson.id);
                               }}
                               className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm text-red-300 hover:bg-red-400/10 transition-colors"
                             >
@@ -291,7 +301,7 @@ function LessonTable({ lessons, onDelete }) {
                 />
               </div>
             ) : previewLesson.notes_url ? (
-              <a
+              
                 href={previewLesson.notes_url}
                 target="_blank"
                 rel="noreferrer"

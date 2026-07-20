@@ -35,7 +35,7 @@ function Courses() {
     try {
       setLoading(true);
       const response = await getCourses();
-      setCourses(response);
+      setCourses(Array.isArray(response) ? response : []);
     } catch (error) {
       console.error(error);
       alert("Failed to load courses.");
@@ -58,11 +58,12 @@ function Courses() {
   const draftCount = courses.length - publishedCount;
 
   const filteredCourses = useMemo(() => {
-    let result = courses.filter(
-      (course) =>
-        course.title.toLowerCase().includes(search.toLowerCase()) ||
-        course.category.toLowerCase().includes(search.toLowerCase())
-    );
+    let result = courses.filter((course) => {
+      const title = (course.title || "").toLowerCase();
+      const category = (course.category || "").toLowerCase();
+      const q = search.toLowerCase();
+      return title.includes(q) || category.includes(q);
+    });
 
     if (categoryFilter !== "All") {
       result = result.filter((c) => c.category === categoryFilter);
@@ -73,9 +74,13 @@ function Courses() {
     }
 
     if (sortBy === "title") {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+      result = [...result].sort((a, b) =>
+        (a.title || "").localeCompare(b.title || "")
+      );
     } else if (sortBy === "category") {
-      result = [...result].sort((a, b) => a.category.localeCompare(b.category));
+      result = [...result].sort((a, b) =>
+        (a.category || "").localeCompare(b.category || "")
+      );
     } else if (sortBy === "duration") {
       result = [...result].sort((a, b) =>
         (a.duration || "").localeCompare(b.duration || "")
@@ -116,8 +121,16 @@ function Courses() {
       await deleteCourse(id);
       fetchCourses();
     } catch (error) {
-      console.error(error);
-      alert("Failed to delete course.");
+      console.error("Delete course error:", error);
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        (error.response?.status === 409 || error.response?.status === 400
+          ? "This course still has lessons or enrolled learners attached. Remove those first, or ask the backend to cascade-delete."
+          : null) ||
+        error.message ||
+        "Failed to delete course.";
+      alert(msg);
     }
   };
 
@@ -133,7 +146,11 @@ function Courses() {
       fetchCourses();
     } catch (error) {
       console.error(error);
-      alert("Operation failed.");
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Operation failed.";
+      alert(msg);
     }
   };
 
@@ -254,7 +271,7 @@ function Courses() {
         </div>
       </section>
 
-      {/* Table (existing component, unmodified) */}
+      {/* Table */}
       {loading ? (
         <div className="flex flex-col items-center justify-center gap-3 py-20">
           <div className="w-10 h-10 rounded-full border-2 border-amber-400/30 border-t-amber-400 animate-spin" />
@@ -298,7 +315,6 @@ function Courses() {
         </div>
       )}
 
-      {/* Existing modal form, unmodified */}
       <CourseForm
         open={openForm}
         onClose={() => {

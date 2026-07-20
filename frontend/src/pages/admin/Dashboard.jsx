@@ -29,10 +29,21 @@ function Dashboard() {
   const fetchDashboard = async () => {
     try {
       const response = await getDashboard();
-      setDashboard(response);
+      console.log("admin dashboard response:", response); // TEMP: remove once confirmed working
+      setDashboard(response ?? {});
     } catch (err) {
-      console.error(err);
-      setError("Failed to load dashboard.");
+      console.error("Admin dashboard load error:", err);
+      if (err.response) {
+        setError(
+          err.response.data?.detail ||
+            err.response.data?.message ||
+            `Server returned ${err.response.status}`
+        );
+      } else if (err.request) {
+        setError("Could not reach the server. Is the backend running?");
+      } else {
+        setError("Failed to load dashboard.");
+      }
     } finally {
       setLoading(false);
     }
@@ -51,73 +62,46 @@ function Dashboard() {
     );
   }
 
-  if (error) {
+  if (error || !dashboard) {
     return (
       <AdminLayout>
-        <div className="flex justify-center items-center h-[70vh]">
+        <div className="flex flex-col justify-center items-center h-[70vh] gap-4">
           <p className="text-xl font-semibold text-red-400">{error}</p>
+          <button
+            onClick={() => {
+              setLoading(true);
+              setError("");
+              fetchDashboard();
+            }}
+            className="rounded-lg px-4 py-2 text-sm font-medium text-white bg-amber-600 hover:bg-amber-500 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </AdminLayout>
     );
   }
 
+  // Safe fallbacks — prevents undefined.map / undefined * 3.6 crashes
+  const totalUsers = dashboard.total_users ?? 0;
+  const totalLearners = dashboard.total_learners ?? 0;
+  const totalAdmins = dashboard.total_admins ?? 0;
+  const totalCourses = dashboard.total_courses ?? 0;
+  const totalAssessments = dashboard.total_assessments ?? 0;
+  const totalQuestions = dashboard.total_questions ?? 0;
+  const quizAttempts = dashboard.quiz_attempts ?? 0;
+  const passRate = dashboard.pass_rate ?? 0;
+  const averageScore = dashboard.average_score ?? 0;
+
   const cards = [
-    {
-      title: "Total Users",
-      value: dashboard.total_users,
-      icon: Users,
-      accent: "text-blue-300",
-      badge: "bg-blue-400/10 border-blue-400/25",
-    },
-    {
-      title: "Learners",
-      value: dashboard.total_learners,
-      icon: UserCheck,
-      accent: "text-emerald-300",
-      badge: "bg-emerald-400/10 border-emerald-400/25",
-    },
-    {
-      title: "Admins",
-      value: dashboard.total_admins,
-      icon: ShieldCheck,
-      accent: "text-fuchsia-300",
-      badge: "bg-fuchsia-400/10 border-fuchsia-400/25",
-    },
-    {
-      title: "Courses",
-      value: dashboard.total_courses,
-      icon: BookOpen,
-      accent: "text-orange-300",
-      badge: "bg-orange-400/10 border-orange-400/25",
-    },
-    {
-      title: "Assessments",
-      value: dashboard.total_assessments,
-      icon: ClipboardList,
-      accent: "text-pink-300",
-      badge: "bg-pink-400/10 border-pink-400/25",
-    },
-    {
-      title: "Questions",
-      value: dashboard.total_questions,
-      icon: HelpCircle,
-      accent: "text-sky-300",
-      badge: "bg-sky-400/10 border-sky-400/25",
-    },
-    {
-      title: "Quiz Attempts",
-      value: dashboard.quiz_attempts,
-      icon: BarChart3,
-      accent: "text-violet-300",
-      badge: "bg-violet-400/10 border-violet-400/25",
-    },
-    {
-      title: "Pass Rate",
-      value: `${dashboard.pass_rate}%`,
-      icon: Award,
-      accent: "text-amber-300",
-      badge: "bg-amber-400/10 border-amber-400/25",
-    },
+    { title: "Total Users", value: totalUsers, icon: Users, accent: "text-blue-300", badge: "bg-blue-400/10 border-blue-400/25" },
+    { title: "Learners", value: totalLearners, icon: UserCheck, accent: "text-emerald-300", badge: "bg-emerald-400/10 border-emerald-400/25" },
+    { title: "Admins", value: totalAdmins, icon: ShieldCheck, accent: "text-fuchsia-300", badge: "bg-fuchsia-400/10 border-fuchsia-400/25" },
+    { title: "Courses", value: totalCourses, icon: BookOpen, accent: "text-orange-300", badge: "bg-orange-400/10 border-orange-400/25" },
+    { title: "Assessments", value: totalAssessments, icon: ClipboardList, accent: "text-pink-300", badge: "bg-pink-400/10 border-pink-400/25" },
+    { title: "Questions", value: totalQuestions, icon: HelpCircle, accent: "text-sky-300", badge: "bg-sky-400/10 border-sky-400/25" },
+    { title: "Quiz Attempts", value: quizAttempts, icon: BarChart3, accent: "text-violet-300", badge: "bg-violet-400/10 border-violet-400/25" },
+    { title: "Pass Rate", value: `${passRate}%`, icon: Award, accent: "text-amber-300", badge: "bg-amber-400/10 border-amber-400/25" },
   ];
 
   const quickActions = [
@@ -126,13 +110,16 @@ function Dashboard() {
     { label: "Assessments", to: "/admin/assessments", icon: ClipboardList },
   ];
 
-  const hasRecentUsers = Array.isArray(dashboard.recent_users);
-  const hasRecentCourses = Array.isArray(dashboard.recent_courses);
-  const hasRecentActivity = Array.isArray(dashboard.recent_activity);
+  const recentUsers = Array.isArray(dashboard.recent_users) ? dashboard.recent_users : [];
+  const recentCourses = Array.isArray(dashboard.recent_courses) ? dashboard.recent_courses : [];
+  const recentActivity = Array.isArray(dashboard.recent_activity) ? dashboard.recent_activity : [];
+
+  const hasRecentUsers = recentUsers.length > 0;
+  const hasRecentCourses = recentCourses.length > 0;
+  const hasRecentActivity = recentActivity.length > 0;
 
   return (
     <AdminLayout>
-      {/* Hero / welcome banner */}
       <section className="mb-8 rounded-2xl border border-amber-400/15 bg-gradient-to-br from-white/[0.05] to-white/[0.01] backdrop-blur-xl p-6 sm:p-8">
         <span className="inline-flex items-center gap-2 rounded-full border border-amber-400/30 bg-amber-400/10 px-3 py-1 text-[11px] font-mono text-amber-300 mb-4">
           <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
@@ -148,11 +135,9 @@ function Dashboard() {
         </p>
       </section>
 
-      {/* Premium StatCards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-4 sm:gap-6">
         {cards.map((card) => {
           const Icon = card.icon;
-
           return (
             <div
               key={card.title}
@@ -165,7 +150,6 @@ function Dashboard() {
                     {card.value}
                   </h2>
                 </div>
-
                 <div
                   className={`p-3 rounded-xl border ${card.badge} ${card.accent} transition-transform duration-300 group-hover:scale-105`}
                 >
@@ -177,41 +161,36 @@ function Dashboard() {
         })}
       </div>
 
-      {/* Analytics overview + Quick actions */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 mt-8">
-        {/* Average score — radial chart via conic-gradient, no chart library */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 sm:p-8 flex flex-col items-center justify-center text-center">
           <h2 className="text-sm font-mono text-slate-400 uppercase tracking-widest mb-6">
             Average Quiz Score
           </h2>
-
           <div
             className="relative w-36 h-36 rounded-full flex items-center justify-center"
             style={{
-              background: `conic-gradient(#fbbf24 ${dashboard.average_score * 3.6}deg, rgba(255,255,255,0.08) 0deg)`,
+              background: `conic-gradient(#fbbf24 ${averageScore * 3.6}deg, rgba(255,255,255,0.08) 0deg)`,
             }}
           >
             <div className="absolute inset-2.5 rounded-full bg-slate-950 flex items-center justify-center">
               <span className="text-3xl font-extrabold text-amber-300">
-                {dashboard.average_score}%
+                {averageScore}%
               </span>
             </div>
           </div>
         </div>
 
-        {/* Platform summary */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 sm:p-8">
           <h2 className="text-sm font-mono text-slate-400 uppercase tracking-widest mb-6">
             Platform Summary
           </h2>
-
           <div className="space-y-3.5 text-sm">
             {[
-              ["Total Users", dashboard.total_users],
-              ["Total Courses", dashboard.total_courses],
-              ["Assessments", dashboard.total_assessments],
-              ["Quiz Attempts", dashboard.quiz_attempts],
-              ["Pass Rate", `${dashboard.pass_rate}%`],
+              ["Total Users", totalUsers],
+              ["Total Courses", totalCourses],
+              ["Assessments", totalAssessments],
+              ["Quiz Attempts", quizAttempts],
+              ["Pass Rate", `${passRate}%`],
             ].map(([label, value]) => (
               <div
                 key={label}
@@ -224,12 +203,10 @@ function Dashboard() {
           </div>
         </div>
 
-        {/* Quick actions */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.04] backdrop-blur-xl p-6 sm:p-8">
           <h2 className="text-sm font-mono text-slate-400 uppercase tracking-widest mb-6">
             Quick Actions
           </h2>
-
           <div className="space-y-3">
             {quickActions.map((action) => {
               const Icon = action.icon;
@@ -248,7 +225,6 @@ function Dashboard() {
         </div>
       </div>
 
-      {/* Recent activity / users / courses — only if the API provides them */}
       {(hasRecentActivity || hasRecentUsers || hasRecentCourses) && (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6 mt-8">
           {hasRecentUsers && (
@@ -258,9 +234,9 @@ function Dashboard() {
                 Recent Users
               </h2>
               <div className="space-y-2">
-                {dashboard.recent_users.map((user, i) => (
+                {recentUsers.map((user, i) => (
                   <div
-                    key={user.id || i}
+                    key={user.id ?? i}
                     className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/[0.04] transition-colors"
                   >
                     <span className="text-sm text-slate-200 truncate">
@@ -284,9 +260,9 @@ function Dashboard() {
                 Recent Courses
               </h2>
               <div className="space-y-2">
-                {dashboard.recent_courses.map((course, i) => (
+                {recentCourses.map((course, i) => (
                   <div
-                    key={course.id || i}
+                    key={course.id ?? i}
                     className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/[0.04] transition-colors"
                   >
                     <span className="text-sm text-slate-200 truncate">
@@ -310,9 +286,9 @@ function Dashboard() {
                 Recent Activity
               </h2>
               <div className="space-y-2">
-                {dashboard.recent_activity.map((activity, i) => (
+                {recentActivity.map((activity, i) => (
                   <div
-                    key={activity.id || i}
+                    key={activity.id ?? i}
                     className="flex items-center justify-between rounded-lg px-3 py-2.5 hover:bg-white/[0.04] transition-colors"
                   >
                     <span className="text-sm text-slate-300">

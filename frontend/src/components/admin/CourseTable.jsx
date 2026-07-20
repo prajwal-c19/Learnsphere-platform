@@ -16,15 +16,14 @@ const PAGE_SIZE = 6;
 function CourseTable({ courses, onEdit, onDelete }) {
   const navigate = useNavigate();
 
-  // Local search/sort/pagination refine whatever `courses` array this
-  // component receives. Note: the admin Courses page may already
-  // filter/sort/paginate before passing courses down here — if so, these
-  // controls stack on top of that rather than replacing it.
   const [search, setSearch] = useState("");
   const [sortBy, setSortBy] = useState("title");
   const [sortDir, setSortDir] = useState("asc");
   const [page, setPage] = useState(1);
   const [openMenuId, setOpenMenuId] = useState(null);
+  const [deletingId, setDeletingId] = useState(null);
+
+  const safeCourses = Array.isArray(courses) ? courses : [];
 
   const toggleSort = (field) => {
     if (sortBy === field) {
@@ -36,8 +35,8 @@ function CourseTable({ courses, onEdit, onDelete }) {
   };
 
   const processedCourses = useMemo(() => {
-    let result = courses.filter((course) =>
-      course.title.toLowerCase().includes(search.toLowerCase())
+    let result = safeCourses.filter((course) =>
+      (course.title || "").toLowerCase().includes(search.toLowerCase())
     );
 
     result = [...result].sort((a, b) => {
@@ -48,13 +47,22 @@ function CourseTable({ courses, onEdit, onDelete }) {
     });
 
     return result;
-  }, [courses, search, sortBy, sortDir]);
+  }, [safeCourses, search, sortBy, sortDir]);
 
   const totalPages = Math.max(1, Math.ceil(processedCourses.length / PAGE_SIZE));
   const paginatedCourses = processedCourses.slice(
     (page - 1) * PAGE_SIZE,
     page * PAGE_SIZE
   );
+
+  const handleDeleteClick = async (id) => {
+    try {
+      setDeletingId(id);
+      await onDelete(id);
+    } finally {
+      setDeletingId(null);
+    }
+  };
 
   const SortHeader = ({ field, label }) => (
     <button
@@ -118,7 +126,6 @@ function CourseTable({ courses, onEdit, onDelete }) {
                   key={course.id}
                   className="border-b border-white/5 last:border-0 transition-colors duration-200 hover:bg-white/[0.03]"
                 >
-                  {/* Thumbnail + title */}
                   <td className="px-6 py-4">
                     <div className="flex items-center gap-3">
                       <div className="w-12 h-12 rounded-lg overflow-hidden border border-white/10 bg-white/[0.03] shrink-0 flex items-center justify-center">
@@ -137,7 +144,6 @@ function CourseTable({ courses, onEdit, onDelete }) {
                           {course.title}
                         </p>
 
-                        {/* Enrollment — only if the API ever provides it */}
                         {typeof course.enrollment_count === "number" && (
                           <p className="text-xs text-slate-500 mt-0.5">
                             {course.enrollment_count} enrolled
@@ -182,7 +188,8 @@ function CourseTable({ courses, onEdit, onDelete }) {
                             openMenuId === course.id ? null : course.id
                           )
                         }
-                        className="p-2 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-white/[0.06] transition-colors"
+                        disabled={deletingId === course.id}
+                        className="p-2 rounded-lg text-slate-400 hover:text-amber-300 hover:bg-white/[0.06] transition-colors disabled:opacity-40"
                       >
                         <MoreVertical size={18} />
                       </button>
@@ -217,8 +224,8 @@ function CourseTable({ courses, onEdit, onDelete }) {
                             </button>
                             <button
                               onClick={() => {
-                                onDelete(course.id);
                                 setOpenMenuId(null);
+                                handleDeleteClick(course.id);
                               }}
                               className="flex items-center gap-2.5 w-full px-3 py-2.5 rounded-lg text-sm text-red-300 hover:bg-red-400/10 transition-colors"
                             >

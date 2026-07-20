@@ -6,6 +6,8 @@ import ProgressBar from "../common/ProgressBar";
 function CourseCard({ course }) {
   const [loading, setLoading] = useState(false);
 
+  if (!course) return null;
+
   const hasProgress = typeof course.progress === "number";
 
   const handleEnroll = async () => {
@@ -14,13 +16,13 @@ function CourseCard({ course }) {
 
       const response = await enrollCourse(course.id);
 
-      alert(response.message);
+      alert(response?.message || "Enrolled successfully!");
     } catch (error) {
-      if (error.response) {
-        alert(error.response.data.detail);
-      } else {
-        alert("Something went wrong.");
-      }
+      const msg =
+        error.response?.data?.detail ||
+        error.response?.data?.message ||
+        "Something went wrong.";
+      alert(msg);
     } finally {
       setLoading(false);
     }
