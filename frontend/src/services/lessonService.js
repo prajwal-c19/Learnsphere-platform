@@ -1,5 +1,9 @@
 import API from "../api/axios";
 
+/* ==========================================
+   Lesson APIs
+========================================== */
+
 export const getLessonsByCourse = async (courseId) => {
 
     const response = await API.get(
@@ -31,6 +35,20 @@ export const createLesson = async (lesson) => {
 
 };
 
+export const updateLesson = async (
+    lessonId,
+    lesson
+) => {
+
+    const response = await API.put(
+        `/lessons/${lessonId}`,
+        lesson
+    );
+
+    return response.data;
+
+};
+
 export const deleteLesson = async (id) => {
 
     const response = await API.delete(
@@ -45,6 +63,47 @@ export const completeLesson = async (lessonId) => {
 
     const response = await API.post(
         `/lessons/${lessonId}/complete`
+    );
+
+    return response.data;
+
+};
+
+
+/* ==========================================
+   Upload Video
+========================================== */
+
+export const uploadLessonVideo = async (
+    file,
+    onUploadProgress
+) => {
+
+    const formData = new FormData();
+
+    formData.append(
+        "file",
+        file
+    );
+
+    const response = await API.post(
+
+        "/lessons/upload-video",
+
+        formData,
+
+        {
+
+            headers: {
+
+                "Content-Type": "multipart/form-data",
+
+            },
+
+            onUploadProgress,
+
+        }
+
     );
 
     return response.data;

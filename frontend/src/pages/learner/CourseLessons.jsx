@@ -15,6 +15,11 @@ import {
     completeLesson
 } from "../../services/lessonService";
 
+
+/* ==========================================
+   Convert YouTube URL to Embed URL
+========================================== */
+
 function getYoutubeEmbedUrl(url) {
 
     if (!url) return null;
@@ -31,6 +36,7 @@ function getYoutubeEmbedUrl(url) {
 
 }
 
+
 function CourseLessons() {
 
     const { courseId } = useParams();
@@ -45,24 +51,36 @@ function CourseLessons() {
 
     const [marking, setMarking] = useState(false);
 
+
     useEffect(() => {
 
         loadLessons();
 
     }, []);
 
+
     const loadLessons = async () => {
 
         try {
 
-            const data = await getLessonsByCourse(courseId);
+            const data =
+                await getLessonsByCourse(courseId);
 
             setLessons(data);
 
             const firstIncomplete =
-                data.find((lesson) => !lesson.completed) || data[0];
 
-            setActiveLesson(firstIncomplete || null);
+                data.find(
+
+                    lesson => !lesson.completed
+
+                ) || data[0];
+
+            setActiveLesson(
+
+                firstIncomplete || null
+
+            );
 
         }
 
@@ -70,7 +88,11 @@ function CourseLessons() {
 
             console.error(error);
 
-            alert("Failed to load lessons for this course.");
+            alert(
+
+                "Failed to load lessons."
+
+            );
 
         }
 
@@ -82,13 +104,16 @@ function CourseLessons() {
 
     };
 
+
     const handleMarkComplete = async (lessonId) => {
 
         try {
 
             setMarking(true);
 
-            await completeLesson(lessonId);
+            await completeLesson(
+                lessonId
+            );
 
             await loadLessons();
 
@@ -98,7 +123,11 @@ function CourseLessons() {
 
             console.error(error);
 
-            alert("Failed to update lesson progress.");
+            alert(
+
+                "Failed to update lesson progress."
+
+            );
 
         }
 
@@ -109,6 +138,7 @@ function CourseLessons() {
         }
 
     };
+
 
     if (loading) {
 
@@ -128,6 +158,7 @@ function CourseLessons() {
 
     }
 
+
     if (lessons.length === 0) {
 
         return (
@@ -143,8 +174,17 @@ function CourseLessons() {
                     </h2>
 
                     <button
-                        onClick={() => navigate(`/assessment/${courseId}`)}
+
+                        onClick={() =>
+
+                            navigate(
+                                `/assessment/${courseId}`
+                            )
+
+                        }
+
                         className="mt-6 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700"
+
                     >
 
                         Go to Assessment
@@ -159,21 +199,36 @@ function CourseLessons() {
 
     }
 
-    const completedCount = lessons.filter((l) => l.completed).length;
+
+    const completedCount =
+
+        lessons.filter(
+
+            lesson => lesson.completed
+
+        ).length;
+
 
     const progress = Math.round(
+
         (completedCount / lessons.length) * 100
+
     );
 
-    const assessmentUnlocked = progress >= 80;
+
+    const assessmentUnlocked =
+
+        progress >= 80;
+
 
     return (
 
         <LearnerLayout>
 
             <div className="grid grid-cols-3 gap-6">
-
-                {/* Lesson list */}
+                                {/* ===================================== */}
+                {/* Sidebar */}
+                {/* ===================================== */}
 
                 <div className="col-span-1 bg-white rounded-2xl shadow-md p-5 h-fit">
 
@@ -192,8 +247,15 @@ function CourseLessons() {
                     <div className="w-full bg-slate-200 rounded-full h-2 mb-5">
 
                         <div
+
                             className="bg-indigo-600 h-2 rounded-full transition-all duration-500"
-                            style={{ width: `${progress}%` }}
+
+                            style={{
+
+                                width: `${progress}%`
+
+                            }}
+
                         />
 
                     </div>
@@ -205,41 +267,128 @@ function CourseLessons() {
                             lessons.map((lesson) => (
 
                                 <button
+
                                     key={lesson.id}
-                                    onClick={() => setActiveLesson(lesson)}
-                                    className={`w-full flex items-center gap-3 text-left px-4 py-3 rounded-xl transition ${
-                                        activeLesson?.id === lesson.id
-                                            ? "bg-indigo-600 text-white"
-                                            : "hover:bg-slate-100"
-                                    }`}
+
+                                    onClick={() =>
+
+                                        setActiveLesson(lesson)
+
+                                    }
+
+                                    className={`
+
+                                        w-full
+
+                                        flex
+
+                                        items-center
+
+                                        gap-3
+
+                                        text-left
+
+                                        px-4
+
+                                        py-3
+
+                                        rounded-xl
+
+                                        transition
+
+                                        ${
+
+                                            activeLesson?.id === lesson.id
+
+                                                ? "bg-indigo-600 text-white"
+
+                                                : "hover:bg-slate-100"
+
+                                        }
+
+                                    `}
+
                                 >
 
                                     {
 
-                                        lesson.completed ? (
+                                        lesson.completed
+
+                                        ?
+
+                                        (
 
                                             <CheckCircle2
+
                                                 size={18}
+
                                                 className={
+
                                                     activeLesson?.id === lesson.id
+
                                                         ? "text-white"
+
                                                         : "text-green-600"
+
                                                 }
+
                                             />
 
-                                        ) : (
+                                        )
 
-                                            <Circle size={18} />
+                                        :
+
+                                        (
+
+                                            <Circle
+
+                                                size={18}
+
+                                            />
 
                                         )
 
                                     }
 
-                                    <span className="text-sm">
+                                    <div className="flex flex-col">
 
-                                        {lesson.order}. {lesson.title}
+                                        <span className="font-medium">
 
-                                    </span>
+                                            {lesson.order}. {lesson.title}
+
+                                        </span>
+
+                                        {
+
+                                            lesson.video_type === "upload"
+
+                                            ?
+
+                                            (
+
+                                                <span className="text-xs opacity-70">
+
+                                                    📹 Uploaded Video
+
+                                                </span>
+
+                                            )
+
+                                            :
+
+                                            (
+
+                                                <span className="text-xs opacity-70">
+
+                                                    ▶️ YouTube
+
+                                                </span>
+
+                                            )
+
+                                        }
+
+                                    </div>
 
                                 </button>
 
@@ -253,20 +402,39 @@ function CourseLessons() {
 
                         {
 
-                            assessmentUnlocked ? (
+                            assessmentUnlocked
+
+                            ?
+
+                            (
 
                                 <button
-                                    onClick={() => navigate(`/assessment/${courseId}`)}
+
+                                    onClick={() =>
+
+                                        navigate(
+
+                                            `/assessment/${courseId}`
+
+                                        )
+
+                                    }
+
                                     className="w-full bg-green-600 text-white px-5 py-3 rounded-xl hover:bg-green-700"
+
                                 >
 
                                     📝 Take Assessment
 
                                 </button>
 
-                            ) : (
+                            )
 
-                                <div className="text-center text-sm text-amber-600 flex items-center justify-center gap-2">
+                            :
+
+                            (
+
+                                <div className="flex items-center justify-center gap-2 text-sm text-amber-600">
 
                                     <Lock size={16} />
 
@@ -282,11 +450,12 @@ function CourseLessons() {
 
                 </div>
 
-                {/* Active lesson content */}
+                {/* ===================================== */}
+                {/* Active Lesson */}
+                {/* ===================================== */}
 
                 <div className="col-span-2 bg-white rounded-2xl shadow-md p-8">
-
-                    {
+                                        {
 
                         activeLesson ? (
 
@@ -310,12 +479,57 @@ function CourseLessons() {
 
                                         <div className="mt-6 aspect-video rounded-xl overflow-hidden bg-black">
 
-                                            <iframe
-                                                className="w-full h-full"
-                                                src={getYoutubeEmbedUrl(activeLesson.video_url)}
-                                                title={activeLesson.title}
-                                                allowFullScreen
-                                            />
+                                            {
+
+                                                activeLesson.video_type === "youtube"
+
+                                                ? (
+
+                                                    <iframe
+
+                                                        className="w-full h-full"
+
+                                                        src={getYoutubeEmbedUrl(
+                                                            activeLesson.video_url
+                                                        )}
+
+                                                        title={activeLesson.title}
+
+                                                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+
+                                                        allowFullScreen
+
+                                                    />
+
+                                                )
+
+                                                : (
+
+                                                    <video
+
+                                                        className="w-full h-full"
+
+                                                        controls
+
+                                                        preload="metadata"
+
+                                                    >
+
+                                                        <source
+
+                                                            src={`http://127.0.0.1:8000${activeLesson.video_url}`}
+
+                                                            type="video/mp4"
+
+                                                        />
+
+                                                        Your browser does not support HTML5 video.
+
+                                                    </video>
+
+                                                )
+
+                                            }
 
                                         </div>
 
@@ -328,10 +542,15 @@ function CourseLessons() {
                                     activeLesson.notes_url && (
 
                                         <a
+
                                             href={activeLesson.notes_url}
+
                                             target="_blank"
+
                                             rel="noreferrer"
+
                                             className="mt-6 inline-flex items-center gap-2 bg-slate-100 px-5 py-3 rounded-xl hover:bg-slate-200"
+
                                         >
 
                                             <FileText size={18} />
@@ -345,8 +564,7 @@ function CourseLessons() {
                                 }
 
                                 <div className="mt-10">
-
-                                    {
+                                                                        {
 
                                         activeLesson.completed ? (
 
@@ -361,11 +579,19 @@ function CourseLessons() {
                                         ) : (
 
                                             <button
+
                                                 onClick={() =>
-                                                    handleMarkComplete(activeLesson.id)
+
+                                                    handleMarkComplete(
+                                                        activeLesson.id
+                                                    )
+
                                                 }
+
                                                 disabled={marking}
+
                                                 className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 disabled:opacity-60"
+
                                             >
 
                                                 {
@@ -390,11 +616,15 @@ function CourseLessons() {
 
                         ) : (
 
-                            <p className="text-slate-500">
+                            <div className="flex items-center justify-center h-full">
 
-                                Select a lesson to begin.
+                                <p className="text-slate-500 text-lg">
 
-                            </p>
+                                    Select a lesson to begin.
+
+                                </p>
+
+                            </div>
 
                         )
 
