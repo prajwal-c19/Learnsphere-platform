@@ -114,6 +114,14 @@ function AdminSidebar() {
 
             <div className="p-6">
 
+                {/* NEW BUTTON */}
+                <button
+                    onClick={() => navigate("/dashboard")}
+                    className="flex w-full items-center justify-center rounded-xl border border-slate-700 px-4 py-3 mb-3 hover:bg-blue-600 transition"
+                >
+                    Learner Dashboard
+                </button>
+
                 <button
                     onClick={handleLogout}
                     className="flex w-full items-center gap-3 rounded-xl border border-slate-700 px-4 py-3 hover:bg-red-500 transition"

@@ -13,6 +13,15 @@ function Sidebar() {
   const navigate = useNavigate();
 
   const handleLogout = () => {
+
+    const confirmLogout = window.confirm(
+      "Are you sure you want to logout?"
+    );
+
+    if (!confirmLogout) {
+      return;
+    }
+
     localStorage.removeItem("token");
     navigate("/");
   };
@@ -86,6 +95,13 @@ function Sidebar() {
       </div>
 
       <div className="p-6">
+
+        <button
+          onClick={() => navigate("/admin")}
+          className="flex w-full items-center justify-center rounded-xl border border-slate-700 px-4 py-3 mb-3 hover:bg-blue-600 transition"
+        >
+          Admin Dashboard
+        </button>
 
         <button
           onClick={handleLogout}
