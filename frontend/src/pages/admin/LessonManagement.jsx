@@ -23,6 +23,8 @@ import {
 
     createLesson,
 
+    updateLesson,
+
     deleteLesson
 
 } from "../../services/lessonService";
@@ -40,6 +42,8 @@ function LessonManagement() {
     const [loading, setLoading] = useState(true);
 
     const [openForm, setOpenForm] = useState(false);
+
+    const [editingLesson, setEditingLesson] = useState(null);
 
     useEffect(() => {
 
@@ -79,31 +83,53 @@ function LessonManagement() {
 
     };
 
-    const handleCreateLesson = async (lessonData) => {
+    const handleSaveLesson = async (lessonData) => {
 
-        try {
+    try {
 
-            await createLesson(lessonData);
+        if (editingLesson) {
 
-            setOpenForm(false);
+            await updateLesson(
 
-            loadData();
+                editingLesson.id,
 
-        }
-
-        catch (error) {
-
-            console.error(error);
-
-            alert(
-
-                error?.response?.data?.detail ||
-
-                "Unable to create lesson."
+                lessonData
 
             );
 
         }
+
+        else {
+
+            await createLesson(
+
+                lessonData
+
+            );
+
+        }
+
+        setEditingLesson(null);
+
+        setOpenForm(false);
+
+        loadData();
+
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert(
+
+            error?.response?.data?.detail ||
+
+            "Unable to save lesson."
+
+        );
+
+    }
 
     };
 
@@ -136,6 +162,18 @@ function LessonManagement() {
             alert("Failed to delete lesson.");
 
         }
+
+    };
+
+    const handleEditLesson = (lesson) => {
+
+    setEditingLesson(
+
+        lesson
+
+    );
+
+    setOpenForm(true);
 
     };
 
@@ -223,6 +261,8 @@ function LessonManagement() {
 
                         onDelete={handleDeleteLesson}
 
+                        onEdit={handleEditLesson}
+
                     />
 
                 )
@@ -235,11 +275,16 @@ function LessonManagement() {
 
                 courseId={courseId}
 
+                lesson={editingLesson}
+
                 nextOrder={lessons.length + 1}
 
-                onClose={() => setOpenForm(false)}
+                onClose={() => {
+                    setOpenForm(false)
+                    setEditingLesson(null);
+                    }}
 
-                onSubmit={handleCreateLesson}
+                onSubmit={handleSaveLesson}
 
             />
 
