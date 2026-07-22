@@ -11,7 +11,9 @@ from app.dependencies import (
 from app.models.user import User
 from app.models.course import Course
 
-from app.schemas.course import CourseCreate
+from app.schemas.course import CourseCreate,GenerateDescriptionRequest, CourseResponse
+
+from app.services import gemini_service
 
 router = APIRouter(
     prefix="/courses",
@@ -129,4 +131,22 @@ def delete_course(
 
     return {
         "message": "Course deleted successfully"
+    }
+
+# ==========================================================
+# Generate Course Description (AI)
+# ==========================================================
+
+@router.post("/generate-description")
+def generate_course_description(
+    request: GenerateDescriptionRequest,
+    admin: User = Depends(get_current_admin),
+):
+
+    description = gemini_service.generate_course_description(
+        request.course_name
+    )
+
+    return {
+        "description": description
     }

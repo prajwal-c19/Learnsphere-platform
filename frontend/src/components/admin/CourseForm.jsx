@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { generateCourseDescription } from "../../services/courseService";
 
 const initialState = {
     title: "",
@@ -20,6 +21,7 @@ function CourseForm({
 }) {
 
     const [course, setCourse] = useState(initialState);
+    const [generating, setGenerating] = useState(false);
 
     useEffect(() => {
 
@@ -56,6 +58,50 @@ function CourseForm({
             [e.target.name]: e.target.value
 
         });
+
+    };
+
+    const handleGenerateDescription = async () => {
+
+        if (!course.title.trim()) {
+
+            alert("Please enter the course title first.");
+
+            return;
+
+        }
+
+        try {
+
+            setGenerating(true);
+
+            const response = await generateCourseDescription(
+                course.title
+            );
+
+            setCourse({
+
+                ...course,
+
+                description: response.description
+
+            });
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            alert("Failed to generate description.");
+
+        }
+
+        finally {
+
+            setGenerating(false);
+
+        }
 
     };
 
@@ -104,20 +150,66 @@ function CourseForm({
                         required
                     />
 
-                    <textarea
-                        name="description"
-                        placeholder="Description"
-                        value={course.description}
-                        onChange={handleChange}
-                        className="w-full border rounded-xl p-3"
-                        rows={4}
-                        required
-                    />
+                    <div>
+
+                        <div className="flex justify-between items-center mb-2">
+
+                            <label className="font-medium">
+
+                                Description
+
+                            </label>
+
+                            <button
+
+                                type="button"
+
+                                onClick={handleGenerateDescription}
+
+                                disabled={generating}
+
+                                className="text-indigo-600 font-medium hover:underline disabled:opacity-50"
+
+                            >
+
+                                {
+
+                                    generating
+
+                                        ? "Generating..."
+
+                                        : "✨ Generate Description"
+
+                                }
+
+                            </button>
+
+                        </div>
+
+                        <textarea
+
+                            name="description"
+
+                            placeholder="Description"
+
+                            value={course.description}
+
+                            onChange={handleChange}
+
+                            className="w-full border rounded-xl p-3"
+
+                            rows={6}
+
+                            required
+
+                        />
+
+                    </div>
 
                     <input
                         type="text"
                         name="category"
-                        placeholder="Category"
+                        placeholder="tags"
                         value={course.category}
                         onChange={handleChange}
                         className="w-full border rounded-xl p-3"
@@ -127,7 +219,7 @@ function CourseForm({
                     <input
                         type="text"
                         name="duration"
-                        placeholder="Duration"
+                        placeholder="Duration (in minutes)"
                         value={course.duration}
                         onChange={handleChange}
                         className="w-full border rounded-xl p-3"

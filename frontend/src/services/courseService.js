@@ -33,6 +33,23 @@ export const createCourse = async (course) => {
 
 };
 
+export const generateCourseDescription = async (
+    courseName
+) => {
+
+    const response = await API.post(
+
+        "/courses/generate-description",
+
+        {
+            course_name: courseName
+        }
+
+    );
+
+    return response.data;
+
+};
 
 export const updateCourse = async (
     id,
@@ -60,3 +77,4 @@ export const deleteCourse = async (
     return response.data;
 
 };
+
