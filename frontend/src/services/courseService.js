@@ -78,3 +78,28 @@ export const deleteCourse = async (
 
 };
 
+export const generateThumbnail = async (
+
+    title,
+
+    category
+
+) => {
+
+    const response = await API.post(
+
+        "/courses/generate-thumbnail",
+
+        {
+
+            title,
+
+            category
+
+        }
+
+    );
+
+    return response.data;
+
+};

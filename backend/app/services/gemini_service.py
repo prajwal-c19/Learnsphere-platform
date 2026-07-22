@@ -14,6 +14,7 @@ model = genai.GenerativeModel(
     "gemini-3.5-flash"
 )
 
+from fastapi import HTTPException
 
 def generate_course_description(course_name: str):
 
@@ -35,6 +36,31 @@ Requirements:
 - Return only the description.
 """
 
-    response = model.generate_content(prompt)
+    try:
 
-    return response.text.strip()
+        response = model.generate_content(prompt)
+
+        return response.text.strip()
+
+    except Exception as e:
+
+        error = str(e)
+
+        if (
+            "RESOURCE_EXHAUSTED" in error
+            or "quota" in error.lower()
+            or "429" in error
+        ):
+
+            raise HTTPException(
+                status_code=429,
+                detail=(
+                    "AI description generation is temporarily unavailable because "
+                    "the free Gemini quota has been reached. Please try again later."
+                )
+            )
+
+        raise HTTPException(
+            status_code=500,
+            detail=f"Gemini Error: {error}"
+        )

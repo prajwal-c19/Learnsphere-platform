@@ -1,5 +1,11 @@
 import { useEffect, useState } from "react";
-import { generateCourseDescription } from "../../services/courseService";
+import {
+
+    generateCourseDescription,
+
+    generateThumbnail
+
+} from "../../services/courseService";
 
 const initialState = {
     title: "",
@@ -8,7 +14,7 @@ const initialState = {
     duration: "",
     format: "",
     thumbnail: "",
-    content_url: ""
+ 
 };
 
 function CourseForm({
@@ -22,6 +28,7 @@ function CourseForm({
 
     const [course, setCourse] = useState(initialState);
     const [generating, setGenerating] = useState(false);
+    const [generatingThumbnail, setGeneratingThumbnail] = useState(false);
 
     useEffect(() => {
 
@@ -35,7 +42,7 @@ function CourseForm({
                 duration: editingCourse.duration,
                 format: editingCourse.format,
                 thumbnail: editingCourse.thumbnail || "",
-                content_url: editingCourse.content_url || ""
+               
 
             });
 
@@ -91,15 +98,77 @@ function CourseForm({
 
         catch (error) {
 
+    console.error(error);
+
+    alert(
+
+        error?.response?.data?.detail ||
+
+        "Failed to generate description."
+
+    );
+
+}
+
+        finally {
+
+            setGenerating(false);
+
+        }
+
+    };
+
+    const handleGenerateThumbnail = async () => {
+
+        if (!course.title.trim()) {
+
+            alert("Please enter the course title first.");
+
+            return;
+
+        }
+
+        if (!course.category.trim()) {
+
+            alert("Please enter the category.");
+
+            return;
+
+        }
+
+        try {
+
+            setGeneratingThumbnail(true);
+
+            const response = await generateThumbnail(
+
+                course.title,
+
+                course.category
+
+            );
+
+            setCourse({
+
+                ...course,
+
+                thumbnail: response.thumbnail_url
+
+            });
+
+        }
+
+        catch (error) {
+
             console.error(error);
 
-            alert("Failed to generate description.");
+            alert("Failed to generate thumbnail.");
 
         }
 
         finally {
 
-            setGenerating(false);
+            setGeneratingThumbnail(false);
 
         }
 
@@ -205,11 +274,15 @@ function CourseForm({
                         />
 
                     </div>
+                    
+                    <label className="block mb-2 font-medium">
+                         Tags
+                    </label>
 
                     <input
                         type="text"
                         name="category"
-                        placeholder="tags"
+                        placeholder="Tags (comma separated)"
                         value={course.category}
                         onChange={handleChange}
                         className="w-full border rounded-xl p-3"
@@ -236,23 +309,71 @@ function CourseForm({
                         required
                     />
 
-                    <input
-                        type="text"
-                        name="thumbnail"
-                        placeholder="Thumbnail URL"
-                        value={course.thumbnail}
-                        onChange={handleChange}
-                        className="w-full border rounded-xl p-3"
-                    />
+                    <div>
 
-                    <input
-                        type="text"
-                        name="content_url"
-                        placeholder="Content URL"
-                        value={course.content_url}
-                        onChange={handleChange}
-                        className="w-full border rounded-xl p-3"
-                    />
+                        <div className="flex justify-between items-center mb-3">
+
+                            <label className="font-medium">
+
+                                Course Thumbnail
+
+                            </label>
+
+                            <button
+
+                                type="button"
+
+                                onClick={handleGenerateThumbnail}
+
+                                disabled={generatingThumbnail}
+
+                                className="text-indigo-600 font-medium hover:underline disabled:opacity-50"
+
+                            >
+
+                                {
+
+                                    generatingThumbnail
+
+                                        ? "Generating..."
+
+                                        : "🎨 Generate Thumbnail"
+
+                                }
+
+                            </button>
+
+                        </div>
+
+                        {
+
+                            course.thumbnail ? (
+
+                                <img
+
+                                    src={`http://127.0.0.1:8000${course.thumbnail}`}
+
+                                    alt="Thumbnail"
+
+                                    className="w-full h-56 object-cover rounded-xl border"
+
+                                />
+
+                            ) : (
+
+                                <div className="w-full h-56 rounded-xl border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
+
+                                    No Thumbnail Generated
+
+                                </div>
+
+                            )
+
+                        }
+
+                    </div>
+
+                    
 
                     <div className="flex justify-end gap-4 pt-4">
 

@@ -21,7 +21,6 @@ class Course(Base):
 
     thumbnail = Column(String(255), nullable=True)
 
-    content_url = Column(String(255), nullable=True)
 
     published = Column(Boolean, default=True)
 

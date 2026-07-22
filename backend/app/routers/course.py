@@ -11,9 +11,16 @@ from app.dependencies import (
 from app.models.user import User
 from app.models.course import Course
 
-from app.schemas.course import CourseCreate,GenerateDescriptionRequest, CourseResponse
+from app.schemas.course import (
+    CourseCreate,
+    GenerateDescriptionRequest, 
+    CourseResponse, 
+    GenerateThumbnailRequest,
+)
 
 from app.services import gemini_service
+
+from app.services import thumbnail_service
 
 router = APIRouter(
     prefix="/courses",
@@ -150,3 +157,23 @@ def generate_course_description(
     return {
         "description": description
     }
+
+# ==========================================================
+# Generate Thumbnail
+# ==========================================================
+
+@router.post("/generate-thumbnail")
+def generate_thumbnail(
+    request: GenerateThumbnailRequest,
+    admin: User = Depends(get_current_admin),
+):
+
+    thumbnail = thumbnail_service.generate_thumbnail(
+
+        title=request.title,
+
+        category=request.category
+
+    )
+
+    return thumbnail

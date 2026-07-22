@@ -23,6 +23,7 @@ import AdminProtectedRoute from "../components/auth/AdminProtectedRoute";
 import Assessments from "../pages/learner/Assessments";
 import Results from "../pages/learner/Results";
 
+import CourseDetails from "../pages/learner/CourseDetails";
 function AppRoutes() {
 
     return (
@@ -54,6 +55,10 @@ function AppRoutes() {
                             <Dashboard />
                         </ProtectedRoute>
                     }
+                />
+                <Route
+                    path="/courses/:id"
+                    element={<CourseDetails />}
                 />
 
                 <Route

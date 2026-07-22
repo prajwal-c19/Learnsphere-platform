@@ -12,7 +12,7 @@ class CourseCreate(BaseModel):
     )
     format: str
     thumbnail: str | None = None
-    content_url: str | None = None
+
 
 
 class CourseResponse(CourseCreate):
@@ -29,3 +29,13 @@ class GenerateDescriptionRequest(BaseModel):
         min_length=3,
         max_length=255
     )
+
+class GenerateThumbnailRequest(BaseModel):
+
+    title: str = Field(
+        ...,
+        min_length=3,
+        max_length=255
+    )
+
+    category: str
