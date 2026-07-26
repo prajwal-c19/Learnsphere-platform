@@ -1,3 +1,5 @@
+from typing import Optional
+
 from pydantic import BaseModel
 
 
@@ -61,6 +63,38 @@ class DashboardResponse(BaseModel):
     enrollments: list[DashboardEnrollment]
 
     recent_results: list[DashboardResult]
+
+    class Config:
+
+        from_attributes = True
+
+
+class LeaderboardEntry(BaseModel):
+
+    id: int
+
+    name: str
+
+    avatar: Optional[str] = None
+
+    completed_courses: int
+
+    completed_assessments: int
+
+    progress: float
+
+    xp: float
+
+    rank: int
+
+    class Config:
+
+        from_attributes = True
+
+
+class LeaderboardResponse(BaseModel):
+
+    leaderboard: list[LeaderboardEntry]
 
     class Config:
 

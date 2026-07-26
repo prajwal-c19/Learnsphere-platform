@@ -7,8 +7,10 @@ import LearnerLayout from "../../layouts/LearnerLayout";
 import StatCard from "../../components/common/StatCard";
 import DashboardCourseCard from "../../components/learner/DashboardCourseCard";
 import ActivityCard from "../../components/learner/ActivityCard";
+import Leaderboard from "../../components/learner/Leaderboard";
 
 import API from "../../api/axios";
+import { getLeaderboard } from "../../services/dashboardService";
 
 function Dashboard() {
 
@@ -20,9 +22,15 @@ function Dashboard() {
 
     const [error, setError] = useState("");
 
+    const [leaderboard, setLeaderboard] = useState([]);
+
+    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+
     useEffect(() => {
 
         loadDashboard();
+
+        loadLeaderboard();
 
     }, []);
 
@@ -49,6 +57,32 @@ function Dashboard() {
         finally {
 
             setLoading(false);
+
+        }
+
+    };
+
+    const loadLeaderboard = async () => {
+
+        try {
+
+            const data = await getLeaderboard();
+
+            setLeaderboard(data?.leaderboard ?? []);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            setLeaderboard([]);
+
+        }
+
+        finally {
+
+            setLeaderboardLoading(false);
 
         }
 
@@ -188,6 +222,40 @@ function Dashboard() {
                     icon="📈"
 
                 />
+
+            </div>
+
+            {/* ==========================================
+                Leaderboard
+            ========================================== */}
+
+            <div className="mt-10">
+
+                {
+
+                    leaderboardLoading
+                        ? (
+
+                            <div className="bg-slate-900 rounded-3xl border border-white/10 shadow-2xl py-16 text-center">
+
+                                <p className="text-slate-400 font-semibold">
+
+                                    Loading leaderboard...
+
+                                </p>
+
+                            </div>
+
+                        )
+                        : (
+
+                            <Leaderboard
+                                leaderboard={leaderboard}
+                            />
+
+                        )
+
+                }
 
             </div>
 
