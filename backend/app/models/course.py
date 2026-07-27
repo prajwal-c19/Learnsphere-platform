@@ -15,13 +15,12 @@ class Course(Base):
 
     category = Column(String(100), nullable=False)
 
-    duration = Column(String(50), nullable=False)
+    duration = Column(Integer, nullable=False)
 
     format = Column(String(20), nullable=False)   # Video or PDF
 
     thumbnail = Column(String(255), nullable=True)
 
-    content_url = Column(String(255), nullable=True)
 
     published = Column(Boolean, default=True)
 

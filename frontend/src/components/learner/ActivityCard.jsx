@@ -1,3 +1,13 @@
+import {
+
+    CheckCircle,
+
+    XCircle,
+
+    Trophy,
+
+} from "lucide-react";
+
 function ActivityCard({
 
     recentResults
@@ -6,94 +16,165 @@ function ActivityCard({
 
     return (
 
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6">
+        <div className="bg-white rounded-3xl shadow-md border border-slate-200 p-6">
 
-            <h2 className="text-xl font-bold mb-5">
+            <div className="flex items-center justify-between mb-6">
 
-                Recent Activity
+                <h2 className="text-2xl font-bold">
 
-            </h2>
+                    Recent Activity
+
+                </h2>
+
+                <Trophy
+
+                    size={26}
+
+                    className="text-yellow-500"
+
+                />
+
+            </div>
 
             {
 
-                recentResults.length === 0 ? (
+                recentResults.length === 0
 
-                    <p className="text-slate-500">
+                    ? (
 
-                        No recent activity available.
+                        <div className="text-center py-10">
 
-                    </p>
+                            <Trophy
 
-                ) : (
+                                size={50}
 
-                    <div className="space-y-4">
+                                className="mx-auto text-slate-300 mb-4"
 
-                        {
+                            />
 
-                            recentResults.map((result) => (
+                            <p className="text-slate-500">
 
-                                <div
-                                    key={result.id}
-                                    className="flex items-start gap-3"
-                                >
+                                No recent activity yet.
 
-                                    <span
-                                        className={`text-xl ${
-                                            result.passed
-                                                ? "text-green-600"
-                                                : "text-red-600"
-                                        }`}
+                            </p>
+
+                        </div>
+
+                    )
+
+                    : (
+
+                        <div className="space-y-5">
+
+                            {
+
+                                recentResults.map((result) => (
+
+                                    <div
+
+                                        key={result.id}
+
+                                        className="flex items-start gap-4 bg-slate-50 rounded-2xl p-4 hover:bg-indigo-50 transition"
+
                                     >
 
                                         {
 
                                             result.passed
 
-                                                ? "✔"
+                                                ? (
 
-                                                : "✖"
+                                                    <CheckCircle
+
+                                                        size={24}
+
+                                                        className="text-green-600 mt-1"
+
+                                                    />
+
+                                                )
+
+                                                : (
+
+                                                    <XCircle
+
+                                                        size={24}
+
+                                                        className="text-red-500 mt-1"
+
+                                                    />
+
+                                                )
 
                                         }
 
-                                    </span>
+                                        <div className="flex-1">
 
-                                    <div>
+                                            <h3 className="font-semibold text-slate-800">
 
-                                        <p className="font-medium">
+                                                {
+
+                                                    result.passed
+
+                                                        ? "Assessment Passed"
+
+                                                        : "Assessment Attempted"
+
+                                                }
+
+                                            </h3>
+
+                                            <p className="text-sm text-slate-500 mt-1">
+
+                                                Score
+
+                                                {" "}
+
+                                                <span className="font-semibold">
+
+                                                    {result.percentage}%
+
+                                                </span>
+
+                                            </p>
+
+                                        </div>
+
+                                        <span
+
+                                            className={`px-3 py-1 rounded-full text-xs font-semibold ${
+
+                                                result.passed
+
+                                                    ? "bg-green-100 text-green-700"
+
+                                                    : "bg-red-100 text-red-700"
+
+                                            }`}
+
+                                        >
 
                                             {
 
                                                 result.passed
 
-                                                    ? "Assessment Passed"
+                                                    ? "Passed"
 
-                                                    : "Assessment Attempted"
+                                                    : "Failed"
 
                                             }
 
-                                        </p>
-
-                                        <p className="text-sm text-slate-500">
-
-                                            Score :
-
-                                            {" "}
-
-                                            {result.percentage}%
-
-                                        </p>
+                                        </span>
 
                                     </div>
 
-                                </div>
+                                ))
 
-                            ))
+                            }
 
-                        }
+                        </div>
 
-                    </div>
-
-                )
+                    )
 
             }
 

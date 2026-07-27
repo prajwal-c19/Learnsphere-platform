@@ -60,6 +60,8 @@ class Lesson(Base):
         nullable=True
     )
 
+    
+
     order = Column(
         Integer,
         default=1

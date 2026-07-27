@@ -1,14 +1,20 @@
 import { useEffect, useState } from "react";
 
+import { useNavigate } from "react-router-dom";
+
 import LearnerLayout from "../../layouts/LearnerLayout";
 
 import StatCard from "../../components/common/StatCard";
 import DashboardCourseCard from "../../components/learner/DashboardCourseCard";
 import ActivityCard from "../../components/learner/ActivityCard";
+import Leaderboard from "../../components/learner/Leaderboard";
 
 import API from "../../api/axios";
+import { getLeaderboard } from "../../services/dashboardService";
 
 function Dashboard() {
+
+    const navigate = useNavigate();
 
     const [dashboard, setDashboard] = useState(null);
 
@@ -16,9 +22,15 @@ function Dashboard() {
 
     const [error, setError] = useState("");
 
+    const [leaderboard, setLeaderboard] = useState([]);
+
+    const [leaderboardLoading, setLeaderboardLoading] = useState(true);
+
     useEffect(() => {
 
         loadDashboard();
+
+        loadLeaderboard();
 
     }, []);
 
@@ -26,13 +38,9 @@ function Dashboard() {
 
         try {
 
-            const response = await API.get(
-                "/dashboard"
-            );
+            const response = await API.get("/dashboard");
 
-            setDashboard(
-                response.data
-            );
+            setDashboard(response.data);
 
         }
 
@@ -41,7 +49,7 @@ function Dashboard() {
             console.error(error);
 
             setError(
-                "Failed to load dashboard. Please try logging in again."
+                "Failed to load dashboard. Please try again."
             );
 
         }
@@ -49,6 +57,32 @@ function Dashboard() {
         finally {
 
             setLoading(false);
+
+        }
+
+    };
+
+    const loadLeaderboard = async () => {
+
+        try {
+
+            const data = await getLeaderboard();
+
+            setLeaderboard(data?.leaderboard ?? []);
+
+        }
+
+        catch (error) {
+
+            console.error(error);
+
+            setLeaderboard([]);
+
+        }
+
+        finally {
+
+            setLeaderboardLoading(false);
 
         }
 
@@ -82,13 +116,23 @@ function Dashboard() {
 
             <LearnerLayout>
 
-                <div className="flex justify-center items-center h-[70vh] text-center">
+                <div className="flex justify-center items-center h-[70vh]">
 
-                    <h1 className="text-2xl font-semibold text-red-500">
+                    <div className="text-center">
 
-                        {error || "Unable to load dashboard."}
+                        <h1 className="text-3xl font-bold text-red-500">
 
-                    </h1>
+                            Oops!
+
+                        </h1>
+
+                        <p className="mt-3 text-slate-500">
+
+                            {error}
+
+                        </p>
+
+                    </div>
 
                 </div>
 
@@ -101,8 +145,53 @@ function Dashboard() {
     return (
 
         <LearnerLayout>
+                        {/* ==========================================
+                Welcome Banner
+            ========================================== */}
 
-            <div className="grid grid-cols-3 gap-6">
+            <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 rounded-3xl text-white p-10 shadow-2xl">
+
+                <h1 className="text-4xl font-bold">
+
+                    👋 Welcome Back!
+
+                </h1>
+
+                <p className="mt-3 text-lg text-indigo-100">
+
+                    Continue your learning journey, complete your courses, and unlock new achievements.
+
+                </p>
+
+                <div className="flex flex-wrap gap-3 mt-8">
+
+                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+
+                        📚 {dashboard.enrolled_courses} Enrolled
+
+                    </span>
+
+                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+
+                        🏆 {dashboard.completed_courses} Completed
+
+                    </span>
+
+                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+
+                        📈 {dashboard.overall_progress}% Progress
+
+                    </span>
+
+                </div>
+
+            </div>
+
+            {/* ==========================================
+                Dashboard Statistics
+            ========================================== */}
+
+            <div className="grid md:grid-cols-3 gap-6 mt-10">
 
                 <StatCard
 
@@ -136,74 +225,333 @@ function Dashboard() {
 
             </div>
 
-            <div className="grid grid-cols-3 gap-6 mt-8">
+            {/* ==========================================
+                Leaderboard
+            ========================================== */}
 
-                <div className="col-span-2 space-y-6">
+            <div className="mt-10">
+
+                {
+
+                    leaderboardLoading
+                        ? (
+
+                            <div className="bg-slate-900 rounded-3xl border border-white/10 shadow-2xl py-16 text-center">
+
+                                <p className="text-slate-400 font-semibold">
+
+                                    Loading leaderboard...
+
+                                </p>
+
+                            </div>
+
+                        )
+                        : (
+
+                            <Leaderboard
+                                leaderboard={leaderboard}
+                            />
+
+                        )
+
+                }
+
+            </div>
+
+            {/* ==========================================
+                Continue Learning Header
+            ========================================== */}
+
+            <div className="flex justify-between items-center mt-12 mb-6">
+
+                <div>
+
+                    <h2 className="text-3xl font-bold text-slate-800">
+
+                        Continue Learning
+
+                    </h2>
+
+                    <p className="text-slate-500 mt-2">
+
+                        Pick up where you left off.
+
+                    </p>
+
+                </div>
+
+                {
+
+                    dashboard.enrollments.length > 3 && (
+
+                        <button
+
+                            onClick={() => navigate("/my-courses")}
+
+                            className="text-indigo-600 font-semibold hover:underline"
+
+                        >
+
+                            View All →
+
+                        </button>
+
+                    )
+
+                }
+
+            </div>
+                        {/* ==========================================
+                Dashboard Content
+            ========================================== */}
+
+            <div className="grid lg:grid-cols-3 gap-8">
+
+                {/* ==========================================
+                    Continue Learning Cards
+                ========================================== */}
+
+                <div className="lg:col-span-2 space-y-6">
 
                     {
 
                         dashboard.enrollments.length === 0
 
-                            ?
+                            ? (
 
-                            (
+                                <div className="bg-white rounded-3xl shadow-md border border-slate-200 py-20 px-8 text-center">
 
-                                <div className="bg-white rounded-2xl shadow-md p-10 text-center">
+                                    <div className="text-6xl mb-6">
 
-                                    <h2 className="text-2xl font-bold">
+                                        📚
 
-                                        No Enrollments Yet
+                                    </div>
+
+                                    <h2 className="text-3xl font-bold">
+
+                                        No Courses Yet
 
                                     </h2>
 
                                     <p className="text-slate-500 mt-3">
 
-                                        Enroll in a course to start learning.
+                                        Start your learning journey by enrolling in your first course.
 
                                     </p>
+
+                                    <button
+
+                                        onClick={() => navigate("/courses")}
+
+                                        className="mt-8 bg-indigo-600 hover:bg-indigo-700 text-white px-8 py-3 rounded-xl transition"
+
+                                    >
+
+                                        Browse Courses
+
+                                    </button>
 
                                 </div>
 
                             )
 
-                            :
+                            : (
 
-                            (
+                                dashboard.enrollments
 
-                                dashboard.enrollments.map(
+                                    .slice(0, 3)
 
-                                    (
-                                        enrollment
-                                    ) => (
+                                    .map((enrollment) => (
 
                                         <DashboardCourseCard
 
-                                            key={
-                                                enrollment.id
-                                            }
+                                            key={enrollment.id}
 
-                                            enrollment={
-                                                enrollment
-                                            }
+                                            enrollment={enrollment}
 
                                         />
 
-                                    )
-
-                                )
+                                    ))
 
                             )
 
                     }
 
                 </div>
-                                <ActivityCard
 
-                    recentResults={
-                        dashboard.recent_results
-                    }
+                {/* ==========================================
+                    Right Sidebar
+                ========================================== */}
 
-                />
+                <div className="space-y-6">
+
+                    <ActivityCard
+
+                        recentResults={dashboard.recent_results}
+
+                    />
+
+                    <div className="bg-white rounded-3xl shadow-md border border-slate-200 p-6">
+
+                        <h2 className="text-2xl font-bold mb-5">
+
+                            Learning Goal 🎯
+
+                        </h2>
+
+                        <div className="space-y-4">
+
+                            <div>
+
+                                <div className="flex justify-between text-sm mb-2">
+
+                                    <span>This Week</span>
+
+                                    <span>
+
+                                        {dashboard.overall_progress}%
+
+                                    </span>
+
+                                </div>
+
+                                <div className="w-full h-3 bg-slate-200 rounded-full overflow-hidden">
+
+                                    <div
+
+                                        className="h-full bg-gradient-to-r from-indigo-500 to-blue-600 rounded-full"
+
+                                        style={{
+
+                                            width: `${dashboard.overall_progress}%`
+
+                                        }}
+
+                                    />
+
+                                </div>
+
+                            </div>
+
+                            <p className="text-slate-500 text-sm leading-6">
+
+                                Keep learning consistently. Completing lessons every day helps you finish courses faster.
+
+                            </p>
+
+                        </div>
+
+                    </div>
+
+                </div>
+
+            </div>
+                        {/* ==========================================
+                Quick Actions
+            ========================================== */}
+
+            <div className="mt-14">
+
+                <h2 className="text-3xl font-bold text-slate-800 mb-6">
+
+                    Quick Actions
+
+                </h2>
+
+                <div className="grid md:grid-cols-3 gap-6">
+
+                    {/* Browse Courses */}
+
+                    <button
+
+                        onClick={() => navigate("/courses")}
+
+                        className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 text-left hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+
+                    >
+
+                        <div className="text-5xl">
+
+                            📚
+
+                        </div>
+
+                        <h3 className="text-2xl font-bold mt-5">
+
+                            Browse Courses
+
+                        </h3>
+
+                        <p className="text-slate-500 mt-2">
+
+                            Discover new courses and continue expanding your skills.
+
+                        </p>
+
+                    </button>
+
+                    {/* My Learning */}
+
+                    <button
+
+                        onClick={() => navigate("/my-courses")}
+
+                        className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 text-left hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+
+                    >
+
+                        <div className="text-5xl">
+
+                            🎓
+
+                        </div>
+
+                        <h3 className="text-2xl font-bold mt-5">
+
+                            My Learning
+
+                        </h3>
+
+                        <p className="text-slate-500 mt-2">
+
+                            Continue your enrolled courses and track your progress.
+
+                        </p>
+
+                    </button>
+
+                    {/* Results */}
+
+                    <button
+
+                        onClick={() => navigate("/results")}
+
+                        className="bg-white rounded-3xl border border-slate-200 shadow-md p-8 text-left hover:shadow-xl hover:-translate-y-1 transition-all duration-300"
+
+                    >
+
+                        <div className="text-5xl">
+
+                            🏆
+
+                        </div>
+
+                        <h3 className="text-2xl font-bold mt-5">
+
+                            Results
+
+                        </h3>
+
+                        <p className="text-slate-500 mt-2">
+
+                            View assessment scores and monitor your achievements.
+
+                        </p>
+
+                    </button>
+
+                </div>
 
             </div>
 

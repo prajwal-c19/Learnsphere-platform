@@ -5,10 +5,14 @@ class CourseCreate(BaseModel):
     title: str = Field(..., min_length=3)
     description: str
     category: str
-    duration: str
+    duration: int = Field(
+    ...,
+    gt=0,
+    description="Course duration in minutes"
+    )
     format: str
     thumbnail: str | None = None
-    content_url: str | None = None
+
 
 
 class CourseResponse(CourseCreate):
@@ -17,3 +21,21 @@ class CourseResponse(CourseCreate):
 
     class Config:
         from_attributes = True
+
+class GenerateDescriptionRequest(BaseModel):
+
+    course_name: str = Field(
+        ...,
+        min_length=3,
+        max_length=255
+    )
+
+class GenerateThumbnailRequest(BaseModel):
+
+    title: str = Field(
+        ...,
+        min_length=3,
+        max_length=255
+    )
+
+    category: str

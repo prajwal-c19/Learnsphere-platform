@@ -86,3 +86,88 @@ def get_dashboard(
         "recent_results": recent_results
 
     }
+
+
+def get_leaderboard(db: Session):
+
+    learners = (
+        db.query(User)
+        .filter(User.role == "learner")
+        .all()
+    )
+
+    leaderboard = []
+
+    for user in learners:
+
+        enrollments = (
+            db.query(Enrollment)
+            .filter(Enrollment.user_id == user.id)
+            .all()
+        )
+
+        results = (
+            db.query(Result)
+            .filter(Result.user_id == user.id)
+            .all()
+        )
+
+        completed_courses = len(
+            [
+                enrollment
+                for enrollment in enrollments
+                if enrollment.progress == 100
+            ]
+        )
+
+        completed_assessments = len(
+            [
+                result
+                for result in results
+                if result.passed
+            ]
+        )
+
+        avg_quiz_score = (
+            sum(result.percentage for result in results) / len(results)
+            if results else 0
+        )
+
+        progress_percentage = (
+            sum(enrollment.progress for enrollment in enrollments) / len(enrollments)
+            if enrollments else 0
+        )
+
+        xp = (
+            (completed_courses * 50)
+            + (completed_assessments * 40)
+            + (avg_quiz_score * 2)
+            + progress_percentage
+        )
+
+        leaderboard.append(
+            {
+
+                "user_id": user.id,
+
+                "name": user.name,
+
+                "completed_courses": completed_courses,
+
+                "completed_assessments": completed_assessments,
+
+                "avg_quiz_score": round(avg_quiz_score, 2),
+
+                "progress_percentage": round(progress_percentage, 2),
+
+                "xp": round(xp, 2)
+
+            }
+        )
+
+    leaderboard.sort(
+        key=lambda entry: entry["xp"],
+        reverse=True
+    )
+
+    return leaderboard[:10]
