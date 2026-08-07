@@ -1,5 +1,10 @@
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
+from app.models.course import Course
+from app.models.lesson import Lesson
+from app.models.question import Question
+from app.services.assessment_ai import generate_questions
+from app.models.assessment import Assessment
 
 from app.database import get_db
 
@@ -169,4 +174,104 @@ def delete_assessment(
 
     return {
         "message": "Assessment deleted successfully."
+    }
+
+@router.post("/{assessment_id}/generate-ai")
+def generate_ai_assessment(
+    assessment_id: int,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_admin),
+):
+
+    # ==========================================
+    # Find Assessment
+    # ==========================================
+
+    assessment = (
+        db.query(Assessment)
+        .filter(Assessment.id == assessment_id)
+        .first()
+    )
+
+    if not assessment:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Assessment not found."
+        )
+
+    # ==========================================
+    # Find Course
+    # ==========================================
+
+    course = (
+        db.query(Course)
+        .filter(Course.id == assessment.course_id)
+        .first()
+    )
+    if not course:
+
+        raise HTTPException(
+            status_code=404,
+            detail="Course not found."
+        )
+
+    # ==========================================
+    # Fetch Lessons
+    # ==========================================
+
+    lessons = (
+        db.query(Lesson)
+        .filter(Lesson.course_id == course.id)
+        .order_by(Lesson.order)
+        .all()
+    )
+
+    if not lessons:
+
+        raise HTTPException(
+            status_code=400,
+            detail="Course has no lessons."
+        )
+
+    # ==========================================
+    # Generate Questions using AI
+    # ==========================================
+
+    ai_questions = generate_questions(
+        course,
+        lessons,
+        total_questions=10,
+    )
+
+    # ==========================================
+    # Remove old questions (optional)
+    # ==========================================
+
+    db.query(Question).filter(
+        Question.assessment_id == assessment.id
+    ).delete()
+
+    # ==========================================
+    # Save Questions
+    # ==========================================
+
+    for q in ai_questions:
+
+        question = Question(
+            assessment_id=assessment.id,
+            question=q["question"],
+            option_a=q["option_a"],
+            option_b=q["option_b"],
+            option_c=q["option_c"],
+            option_d=q["option_d"],
+            correct_answer=q["correct_answer"],
+        )
+
+        db.add(question)
+
+    db.commit()
+
+    return {
+        "message": f"{len(ai_questions)} questions generated successfully."
     }

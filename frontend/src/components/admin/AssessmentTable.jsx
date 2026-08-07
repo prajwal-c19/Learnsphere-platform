@@ -1,7 +1,8 @@
 import {
     Pencil,
     Trash2,
-    ListChecks
+    ListChecks,
+    Sparkles
 } from "lucide-react";
 
 import { useNavigate } from "react-router-dom";
@@ -14,7 +15,9 @@ function AssessmentTable({
 
     onEdit,
 
-    onDelete
+    onDelete,
+
+    onGenerateAI
 
 }) {
 
@@ -149,6 +152,24 @@ function AssessmentTable({
                                                     <ListChecks size={18} />
 
                                                 </button>
+
+                                                <button
+
+    onClick={() =>
+        onGenerateAI(
+            assessment.id
+        )
+    }
+
+    className="bg-purple-100 text-purple-700 p-2 rounded-lg hover:bg-purple-200"
+
+    title="Generate AI Questions"
+
+>
+
+    <Sparkles size={18} />
+
+</button>
 
                                                 <button
 

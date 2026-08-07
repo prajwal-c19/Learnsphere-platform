@@ -144,3 +144,12 @@ export const getAssessment = async (assessmentId) => {
     return response.data;
 
 };
+
+export const generateAssessmentAI = async (assessmentId) => {
+
+    const response = await API.post(
+        `/assessments/${assessmentId}/generate-ai`
+    );
+
+    return response.data;
+};

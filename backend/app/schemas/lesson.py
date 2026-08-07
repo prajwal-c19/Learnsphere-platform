@@ -24,11 +24,7 @@ class LessonCreate(BaseModel):
 
     notes_url: str | None = None
 
-    duration: int = Field(
-    ...,
-    gt=0,
-    description="Lesson duration in minutes"
-    )
+    
 
     order: int = 1
 

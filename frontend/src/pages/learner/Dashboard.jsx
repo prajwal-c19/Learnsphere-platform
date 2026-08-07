@@ -26,13 +26,50 @@ function Dashboard() {
 
     const [leaderboardLoading, setLeaderboardLoading] = useState(true);
 
+    // ==========================================
+    // Hero Banner States
+    // ==========================================
+
+    const [userRank, setUserRank] = useState(null);
+
+    const [userXP, setUserXP] = useState(0);
+
+    const [xpNeeded, setXpNeeded] = useState(0);
+
+    const [hero, setHero] = useState({
+
+        title: "👋 Welcome Back!",
+
+        subtitle:
+            "Continue your learning journey, complete your courses, and unlock new achievements.",
+
+        badge: "🚀 Keep Growing",
+
+        gradient:
+            "from-indigo-600 via-blue-600 to-cyan-500",
+
+        badgeColor:
+            "bg-indigo-100 text-indigo-700"
+
+    });
+
     useEffect(() => {
 
         loadDashboard();
 
-        loadLeaderboard();
-
     }, []);
+
+    useEffect(() => {
+
+        if (dashboard) {
+            if (dashboard?.user_id) {
+
+                loadLeaderboard();
+            }
+
+        }
+
+    }, [dashboard]);
 
     const loadDashboard = async () => {
 
@@ -68,7 +105,116 @@ function Dashboard() {
 
             const data = await getLeaderboard();
 
-            setLeaderboard(data?.leaderboard ?? []);
+            const board = data?.leaderboard ?? [];
+
+            setLeaderboard(board);
+
+            const currentUser = board.find(
+
+                (user) => user.id === dashboard.user_id
+
+            );
+
+            if (!currentUser) return;
+
+            setUserRank(currentUser.rank);
+
+            setUserXP(currentUser.xp);
+
+            if (currentUser.rank > 1) {
+
+                const above = board.find(
+
+                    (user) => user.rank === currentUser.rank - 1
+
+                );
+
+                if (above) {
+
+                    const diff = Math.max(
+
+                        above.xp - currentUser.xp,
+
+                        0
+
+                    );
+
+                    setXpNeeded(diff);
+
+                }
+
+            }
+
+            if (currentUser.rank === 1) {
+
+                setHero({
+
+                    title:
+                        "👑 Welcome Back, Champion!",
+
+                    subtitle:
+                        "Congratulations! You're currently the Top Learner on LearnSphere. Keep learning to defend your crown.",
+
+                    badge:
+                        "🏅 Top Learner",
+
+                    gradient:
+                        "from-yellow-400 via-yellow-500 to-amber-600",
+
+                    badgeColor:
+                        "bg-yellow-100 text-yellow-800"
+
+                });
+
+            }
+
+            else if (currentUser.rank === 2) {
+
+                setHero({
+
+                    title:
+                        "🥈 Almost There!",
+
+                    subtitle:
+                        `Only ${Math.max(
+                            board[0].xp - currentUser.xp,
+                            0
+                        )} XP left to become the Top Learner.`,
+
+                    badge:
+                        "🥈 Silver Challenger",
+
+                    gradient:
+                        "from-slate-400 via-slate-500 to-slate-600",
+
+                    badgeColor:
+                        "bg-slate-100 text-slate-700"
+
+                });
+
+            }
+                        else if (currentUser.rank === 3) {
+
+                setHero({
+
+                    title:
+                        "🥉 Great Progress!",
+
+                    subtitle:
+                        "You're among the Top 3 learners. Keep pushing towards the top.",
+
+                    badge:
+                        "🥉 Bronze Performer",
+
+                    gradient:
+                        "from-orange-400 via-orange-500 to-amber-700",
+
+                    badgeColor:
+                        "bg-orange-100 text-orange-700"
+
+                });
+
+            }
 
         }
 
@@ -145,43 +291,137 @@ function Dashboard() {
     return (
 
         <LearnerLayout>
-                        {/* ==========================================
-                Welcome Banner
+
+            {/* ==========================================
+                Dynamic Welcome Banner
             ========================================== */}
 
-            <div className="bg-gradient-to-r from-indigo-600 via-blue-600 to-cyan-500 rounded-3xl text-white p-10 shadow-2xl">
+            <div
+                className={`bg-gradient-to-r ${hero.gradient} rounded-3xl text-white p-10 shadow-2xl`}
+            >
 
-                <h1 className="text-4xl font-bold">
+                <div className="flex flex-col lg:flex-row justify-between items-center">
 
-                    👋 Welcome Back!
+                    <div>
 
-                </h1>
+                        <h1 className="text-4xl font-bold">
 
-                <p className="mt-3 text-lg text-indigo-100">
+                            {hero.title}
 
-                    Continue your learning journey, complete your courses, and unlock new achievements.
+                        </h1>
 
-                </p>
+                        <p className="mt-3 text-lg text-white/90 max-w-2xl">
 
-                <div className="flex flex-wrap gap-3 mt-8">
+                            {hero.subtitle}
 
-                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+                        </p>
 
-                        📚 {dashboard.enrolled_courses} Enrolled
+                        <div className="flex flex-wrap gap-3 mt-8">
 
-                    </span>
+                            <span
+                                className={`${hero.badgeColor} px-5 py-2 rounded-full font-semibold`}
+                            >
 
-                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+                                {hero.badge}
 
-                        🏆 {dashboard.completed_courses} Completed
+                            </span>
 
-                    </span>
+                            <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
 
-                    <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+                                📚 {dashboard.enrolled_courses} Enrolled
 
-                        📈 {dashboard.overall_progress}% Progress
+                            </span>
 
-                    </span>
+                            <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+
+                                🏆 {dashboard.completed_courses} Completed
+
+                            </span>
+
+                            <span className="bg-white/20 backdrop-blur-md px-5 py-2 rounded-full">
+
+                                📈 {dashboard.overall_progress}% Progress
+
+                            </span>
+
+                        </div>
+
+                    </div>
+
+                    <div className="mt-8 lg:mt-0">
+
+                        <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 w-72 border border-white/20">
+
+                            <h3 className="text-xl font-semibold mb-5">
+
+                                Leaderboard Status
+
+                            </h3>
+
+                            <div className="space-y-4">
+
+                                <div className="flex justify-between">
+
+                                    <span>Your Rank</span>
+
+                                    <span className="font-bold text-2xl">
+
+                                        #{userRank ?? "--"}
+
+                                    </span>
+
+                                </div>
+
+                                <div className="flex justify-between">
+
+                                    <span>Your XP</span>
+
+                                    <span className="font-bold">
+
+                                        {userXP}
+
+                                    </span>
+
+                                </div>
+                                                                {
+
+                                    userRank !== 1 && (
+
+                                        <div className="flex justify-between">
+
+                                            <span>XP to Next Rank</span>
+
+                                            <span className="font-bold">
+
+                                                {xpNeeded}
+
+                                            </span>
+
+                                        </div>
+
+                                    )
+
+                                }
+
+                                {
+
+                                    userRank === 1 && (
+
+                                        <div className="bg-yellow-300 text-black rounded-xl py-2 text-center font-bold animate-pulse">
+
+                                            👑 DEFEND YOUR CROWN
+
+                                        </div>
+
+                                    )
+
+                                }
+
+                            </div>
+
+                        </div>
+
+                    </div>
 
                 </div>
 
@@ -234,6 +474,7 @@ function Dashboard() {
                 {
 
                     leaderboardLoading
+
                         ? (
 
                             <div className="bg-slate-900 rounded-3xl border border-white/10 shadow-2xl py-16 text-center">
@@ -247,10 +488,13 @@ function Dashboard() {
                             </div>
 
                         )
+
                         : (
 
                             <Leaderboard
+
                                 leaderboard={leaderboard}
+
                             />
 
                         )
@@ -302,13 +546,13 @@ function Dashboard() {
                 }
 
             </div>
-                        {/* ==========================================
+
+            {/* ==========================================
                 Dashboard Content
             ========================================== */}
 
             <div className="grid lg:grid-cols-3 gap-8">
-
-                {/* ==========================================
+                                {/* ==========================================
                     Continue Learning Cards
                 ========================================== */}
 
@@ -436,7 +680,23 @@ function Dashboard() {
 
                             <p className="text-slate-500 text-sm leading-6">
 
-                                Keep learning consistently. Completing lessons every day helps you finish courses faster.
+                                {
+
+                                    userRank === 1
+
+                                        ? "👑 Amazing! You're the Top Learner. Keep completing lessons and defend your crown."
+
+                                        : userRank === 2
+
+                                        ? `🥈 Only ${xpNeeded} XP left to become the Top Learner.`
+
+                                        : userRank === 3
+
+                                        ? "🥉 You're already among the Top 3 learners. Keep pushing!"
+
+                                        : "Keep learning consistently. Every completed lesson brings you closer to the leaderboard."
+
+                                }
 
                             </p>
 
@@ -447,7 +707,8 @@ function Dashboard() {
                 </div>
 
             </div>
-                        {/* ==========================================
+
+            {/* ==========================================
                 Quick Actions
             ========================================== */}
 
@@ -460,8 +721,6 @@ function Dashboard() {
                 </h2>
 
                 <div className="grid md:grid-cols-3 gap-6">
-
-                    {/* Browse Courses */}
 
                     <button
 
@@ -491,8 +750,6 @@ function Dashboard() {
 
                     </button>
 
-                    {/* My Learning */}
-
                     <button
 
                         onClick={() => navigate("/my-courses")}
@@ -515,13 +772,11 @@ function Dashboard() {
 
                         <p className="text-slate-500 mt-2">
 
-                            Continue your enrolled courses and track your progress.
+                            Continue your enrolled courses and track your learning progress.
 
                         </p>
 
                     </button>
-
-                    {/* Results */}
 
                     <button
 

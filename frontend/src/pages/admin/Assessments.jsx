@@ -12,7 +12,8 @@ import {
     getAllAssessments,
     createAssessment,
     updateAssessment,
-    deleteAssessment
+    deleteAssessment,
+    generateAssessmentAI,
 } from "../../services/assessmentService";
 
 function Assessments() {
@@ -129,35 +130,26 @@ function Assessments() {
 
     };
 
-    const handleSubmit = async (
-        assessmentData
-    ) => {
+    const handleGenerateAI = async (assessmentId) => {
+
+        const confirmGenerate = window.confirm(
+
+            "Generate AI questions? Existing questions will be replaced."
+
+        );
+
+        if (!confirmGenerate) return;
 
         try {
 
-            if (editingAssessment) {
+            setLoading(true);
 
-                await updateAssessment(
-
-                    editingAssessment.id,
-
-                    assessmentData
-
+            const response =
+                await generateAssessmentAI(
+                    assessmentId
                 );
 
-            }
-
-            else {
-
-                await createAssessment(
-                    assessmentData
-                );
-
-            }
-
-            setOpenForm(false);
-
-            setEditingAssessment(null);
+            alert(response.message);
 
             loadData();
 
@@ -165,145 +157,212 @@ function Assessments() {
 
         catch (error) {
 
-            console.error(error);
+            alert(
 
-            alert("Operation failed.");
+                error.response?.data?.detail ||
+
+                "Failed to generate AI questions."
+
+            );
+
+        }
+
+        finally {
+
+            setLoading(false);
 
         }
 
     };
+    const handleSubmit = async (
+    assessmentData
+) => {
 
-    
+    try {
 
-    return (
+        if (editingAssessment) {
 
-        <AdminLayout>
+            await updateAssessment(
 
-            <div className="flex justify-between items-center mb-8">
+                editingAssessment.id,
 
-                <div>
+                assessmentData
 
-                    <h1 className="text-4xl font-bold">
+            );
 
-                        Assessment Management
+        }
 
-                    </h1>
+        else {
 
-                    <p className="text-slate-500 mt-2">
+            await createAssessment(
 
-                        Total Assessments : {assessments.length}
+                assessmentData
 
-                    </p>
+            );
 
-                </div>
+        }
 
-                <button
-                    onClick={handleCreate}
-                    className="bg-indigo-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-indigo-700"
-                >
+        setOpenForm(false);
 
-                    <Plus size={20} />
+        setEditingAssessment(null);
 
-                    Add Assessment
+        loadData();
 
-                </button>
+    }
+
+    catch (error) {
+
+        console.error(error);
+
+        alert("Operation failed.");
+
+    }
+
+};
+return (
+
+    <AdminLayout>
+
+        {/* ==========================================
+            Header
+        ========================================== */}
+
+        <div className="flex justify-between items-center mb-8">
+
+            <div>
+
+                <h1 className="text-4xl font-bold">
+
+                    Assessment Management
+
+                </h1>
+
+                <p className="text-slate-500 mt-2">
+
+                    Total Assessments : {assessments.length}
+
+                </p>
 
             </div>
 
-            <div className="bg-white rounded-2xl shadow-md p-5 mb-8">
+            <button
 
-                <div className="flex items-center gap-3">
+                onClick={handleCreate}
 
-                    <Search
-                        size={20}
-                        className="text-slate-500"
-                    />
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl flex items-center gap-2 hover:bg-indigo-700 transition"
 
-                    <input
-                        type="text"
-                        placeholder="Search assessment..."
-                        value={search}
-                        onChange={(e) =>
-                            setSearch(
-                                e.target.value
-                            )
-                        }
-                        className="w-full outline-none"
-                    />
+            >
 
-                </div>
+                <Plus size={20} />
+
+                Add Assessment
+
+            </button>
+
+        </div>
+
+        {/* ==========================================
+            Search
+        ========================================== */}
+
+        <div className="bg-white rounded-2xl shadow-md p-5 mb-8">
+
+            <div className="flex items-center gap-3">
+
+                <Search
+
+                    size={20}
+
+                    className="text-slate-500"
+
+                />
+
+                <input
+
+                    type="text"
+
+                    placeholder="Search assessment..."
+
+                    value={search}
+
+                    onChange={(e) =>
+                        setSearch(
+                            e.target.value
+                        )
+                    }
+
+                    className="w-full outline-none"
+
+                />
 
             </div>
 
-            {
+        </div>
+                {/* ==========================================
+            Assessment Table
+        ========================================== */}
 
-                loading
+        {
 
-                    ?
+            loading
 
-                    (
+                ? (
 
-                        <div className="text-center text-2xl">
+                    <div className="text-center text-2xl">
 
-                            Loading Assessments...
+                        Loading Assessments...
 
-                        </div>
+                    </div>
 
-                    )
+                )
 
-                    :
+                : (
 
-                    (
+                    <AssessmentTable
 
-                        <AssessmentTable
+                        assessments={filteredAssessments}
 
-                            assessments={
-                                filteredAssessments
-                            }
+                        courses={courses}
 
-                            courses={courses}
+                        onEdit={handleEdit}
 
-                            onEdit={
-                                handleEdit
-                            }
+                        onDelete={handleDelete}
 
-                            onDelete={
-                                handleDelete
-                            }
+                        onGenerateAI={handleGenerateAI}
 
-                            
+                    />
 
-                        />
+                )
 
-                    )
+        }
 
-            }
+        {/* ==========================================
+            Assessment Form
+        ========================================== */}
 
-            <AssessmentForm
+        <AssessmentForm
 
-                open={openForm}
+            open={openForm}
 
-                onClose={() => {
+            onClose={() => {
 
-                    setOpenForm(false);
+                setOpenForm(false);
 
-                    setEditingAssessment(null);
+                setEditingAssessment(null);
 
-                }}
+            }}
 
-                onSubmit={handleSubmit}
+            onSubmit={handleSubmit}
 
-                editingAssessment={
-                    editingAssessment
-                }
+            editingAssessment={editingAssessment}
 
-                courses={courses}
+            courses={courses}
 
-            />
+        />
 
-        </AdminLayout>
+    </AdminLayout>
 
-    );
+);
 
 }
 

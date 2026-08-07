@@ -66,10 +66,29 @@ function Register() {
 
         catch (err) {
 
-            setError(
-                err.response?.data?.detail ||
-                "Registration failed."
+            const detail = err.response?.data?.detail;
+
+            if (typeof detail === "string") {
+
+                setError(detail);
+
+                }
+
+            else if (Array.isArray(detail)) {
+
+                setError(
+
+                    detail.map((e) => e.msg).join(", ")
+
             );
+
+            }
+
+            else {
+
+                setError("Registration failed.");
+
+            }
 
         }
 

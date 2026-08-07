@@ -69,6 +69,8 @@ def get_dashboard(
 
     return {
 
+        "user_id": current_user.id,
+
         "name": current_user.name,
 
         "total_courses": total_courses,
@@ -83,9 +85,9 @@ def get_dashboard(
 
         "enrollments": enrollments,
 
-        "recent_results": recent_results
+        "recent_results": recent_results,
 
-    }
+        }
 
 
 def get_leaderboard(db: Session):

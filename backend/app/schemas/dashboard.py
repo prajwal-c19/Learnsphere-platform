@@ -48,6 +48,8 @@ class DashboardResult(BaseModel):
 
 class DashboardResponse(BaseModel):
 
+    user_id: int
+
     name: str
 
     total_courses: int

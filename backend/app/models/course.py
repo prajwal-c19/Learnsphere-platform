@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, Boolean, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy import Text
 
 from app.database import Base
 
@@ -11,7 +12,7 @@ class Course(Base):
 
     title = Column(String(255), nullable=False)
 
-    description = Column(String(1000), nullable=False)
+    description = Column(Text, nullable=False)
 
     category = Column(String(100), nullable=False)
 
